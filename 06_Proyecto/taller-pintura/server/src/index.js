@@ -35,7 +35,11 @@ app.use((err, req, res, _next) => {
 
 app.use((req, res) => res.status(404).json({ message: "Ruta no encontrada." }));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Backend del taller escuchando en http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Backend del taller escuchando en http://localhost:${PORT}`);
+  });
+}
+
+export default app;
