@@ -1,361 +1,742 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cotizador · Taller de pintura de muebles</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" crossorigin src="/assets/index-D3T2Dnox.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-aXgxGRwP.css">
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cotizador · Taller de pintura de muebles</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap"
-    rel="stylesheet">
-  <script type="module" crossorigin src="/assets/index-B_CXTAl0.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-CTK6gESL.css">
-</head>
-
-<body>
-  <div class="language-picker global-language-picker">
-    <label for="languageSelect" data-i18n="language"></label>
-    <select id="languageSelect" data-language-option>
-      <option value="es" data-i18n="spanish"></option>
-      <option value="en" data-i18n="english"></option>
-    </select>
-  </div>
-  <!-- ============ LOGIN + SELECTOR DE ROL ============ -->
-  <div class="wrap" id="roleGate">
-    <header>
-      <div class="eyebrow" data-i18n="workshop"></div>
-      <h1 data-i18n="welcome"></h1>
-      <p class="sub" data-i18n="loginIntro"></p>
-    </header>
-
-    <div class="card auth-card">
-      <h2 data-i18n="login"></h2>
-      <div class="error" id="loginError" style="display:none;margin-bottom:16px;"></div>
-      <div class="form-field">
-        <label for="loginEmail" data-i18n="email"></label>
-        <input type="email" id="loginEmail" data-i18n-placeholder="emailPlaceholder" autocomplete="email">
-      </div>
-      <div class="form-field">
-        <label for="loginPassword" data-i18n="password"></label>
-        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"
-          onkeydown="if(event.key==='Enter')handleLogin();">
-      </div>
-      <button class="primary" id="btnLogin" style="width:100%" onclick="handleLogin()" data-i18n="login"></button>
-      <button class="ghost" style="width:100%;margin-top:10px;" onclick="showRegister()" data-i18n="createAccount"></button>
+  <body>
+    <div class="language-picker global-language-picker">
+      <label for="languageSelect" data-i18n="language"></label>
+      <select id="languageSelect" data-language-option>
+        <option value="es" data-i18n="spanish"></option>
+        <option value="en" data-i18n="english"></option>
+      </select>
     </div>
-
-  </div>
-
-  <!-- ============ REGISTRO ============ -->
-  <div class="wrap" id="registerView" style="display:none;">
-    <header>
-      <button class="backlink" onclick="cancelRegister()">← <span data-i18n="cancel"></span></button>
-      <div class="eyebrow" data-i18n="workshop"></div>
-      <h1 data-i18n="register"></h1>
-      <p class="sub" data-i18n="registerIntro"></p>
-    </header>
-
-    <div class="card">
-      <div class="error" id="registerError" style="display:none;margin-bottom:16px;"></div>
-      <div class="success" id="registerSuccess" style="display:none;margin-bottom:16px;"></div>
-      <div class="form-field">
-        <label for="regName" data-i18n="fullName"></label>
-        <input type="text" id="regName" data-i18n-placeholder="yourName" autocomplete="name">
-      </div>
-      <div class="form-field">
-        <label for="regEmail" data-i18n="email"></label>
-        <input type="email" id="regEmail" data-i18n-placeholder="emailPlaceholder" autocomplete="email">
-      </div>
-      <div class="form-field">
-        <label for="regPassword" data-i18n="password"></label>
-        <input type="password" id="regPassword" data-i18n-placeholder="minimumPassword" autocomplete="new-password">
-      </div>
-      <div class="form-field">
-        <label for="regPassword2" data-i18n="confirmPassword"></label>
-        <input type="password" id="regPassword2" data-i18n-placeholder="repeatPassword" autocomplete="new-password"
-          onkeydown="if(event.key==='Enter')handleRegister();">
-      </div>
-      <div class="row">
-        <button class="ghost" onclick="cancelRegister()" data-i18n="cancel"></button>
-        <button class="primary" id="btnRegister" onclick="handleRegister()" data-i18n="save"></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ VISTA CLIENTE ============ -->
-  <div class="wrap" id="clientApp" style="display:none;">
-    <div class="app-shell">
-      <aside class="app-sidebar" aria-label="Navegación del cliente">
-        <div class="sidebar-brand"><span class="sidebar-mark">CT</span><span data-i18n="clientNavTitle">Cotiza tu mueble</span></div>
-        <nav class="sidebar-nav">
-          <div class="sidebar-group">
-            <div class="sidebar-label" data-i18n="buyGroup">Comprar</div>
-            <button class="sidebar-link active" type="button" data-nav="client-store"><span class="sidebar-icon">⌂</span><span data-i18n="storeTitle">Tienda</span></button>
-            <button class="sidebar-link" type="button" data-nav="client-cart"><span class="sidebar-icon">▣</span><span data-i18n="cartTitle">Carrito de compras</span></button>
-          </div>
-          <div class="sidebar-group">
-            <div class="sidebar-label" data-i18n="purchasesGroup">Mis compras</div>
-            <button class="sidebar-link" type="button" data-nav="client-orders"><span class="sidebar-icon">□</span><span data-i18n="myOrdersTitle">Mis pedidos</span></button>
-          </div>
-          <div class="sidebar-group">
-            <div class="sidebar-label" data-i18n="toolsGroup">Herramientas</div>
-            <button class="sidebar-link" type="button" data-nav="client-quote"><span class="sidebar-icon">✦</span><span data-i18n="quoteFurniture">Cotizador IA</span></button>
-          </div>
-        </nav>
-        <button class="sidebar-logout" type="button" onclick="logout()">← <span data-i18n="logout"></span></button>
-      </aside>
-      <main class="app-main">
+    <!-- ============ LOGIN + SELECTOR DE ROL ============ -->
+    <div class="wrap" id="roleGate">
       <header>
-      <div class="eyebrow" data-i18n="workshop"></div>
-      <h1 data-i18n="quoteFurniture"></h1>
-      <p class="sub" data-i18n="quoteIntro"></p>
-      <div class="public-banner" id="publicBanner"></div>
-    </header>
+        <div class="eyebrow" data-i18n="workshop"></div>
+        <h1 data-i18n="welcome"></h1>
+        <p class="sub" data-i18n="loginIntro"></p>
+      </header>
 
-      <section class="store-section app-panel" data-panel="client-store" aria-labelledby="storeTitle">
-        <div class="section-title"><span id="storeTitle" data-i18n="storeTitle"></span><button class="ghost small"
-          id="refreshStore" data-i18n="refresh" type="button"></button></div>
-        <div id="clientProducts" class="product-grid"></div>
-      </section>
-
-      <!-- ============ CARRITO DE COMPRAS ============ -->
-      <section id="cartContainer" class="cart-section app-panel" data-panel="client-cart" aria-label="Carrito de compras"></section>
-
-      <!-- ============ HISTORIAL DE PEDIDOS DEL CLIENTE ============ -->
-      <section class="orders-history-section app-panel" data-panel="client-orders" aria-labelledby="myOrdersTitle">
-        <div class="section-title">
-          <span id="myOrdersTitle" data-i18n="myOrdersTitle"></span>
-          <button class="ghost small" id="refreshMyOrders" onclick="window.loadMyOrders?.()" data-i18n="refresh" type="button"></button>
+      <div class="card auth-card">
+        <h2 data-i18n="login"></h2>
+        <div
+          class="error"
+          id="loginError"
+          style="display: none; margin-bottom: 16px"
+        ></div>
+        <div class="form-field">
+          <label for="loginEmail" data-i18n="email"></label>
+          <input
+            type="email"
+            id="loginEmail"
+            data-i18n-placeholder="emailPlaceholder"
+            autocomplete="email"
+          />
         </div>
-        <div id="clientOrdersList" class="orders-history-grid"></div>
-      </section>
-
-
-
-    <div class="quote-panel app-panel" data-panel="client-quote">
-    <div class="progress">
-      <div>
-        <div class="bar"><span id="bar1"></span></div>
-        <div class="label" id="lbl1" data-i18n="style"></div>
-      </div>
-      <div>
-        <div class="bar"><span id="bar2"></span></div>
-        <div class="label" id="lbl2" data-i18n="photo"></div>
-      </div>
-      <div>
-        <div class="bar"><span id="bar3"></span></div>
-        <div class="label" id="lbl3" data-i18n="quote"></div>
+        <div class="form-field">
+          <label for="loginPassword" data-i18n="password"></label>
+          <input
+            type="password"
+            id="loginPassword"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            onkeydown="if(event.key==='Enter')handleLogin();"
+          />
+        </div>
+        <button
+          class="primary"
+          id="btnLogin"
+          style="width: 100%"
+          onclick="handleLogin()"
+          data-i18n="login"
+        ></button>
+        <button
+          class="ghost"
+          style="width: 100%; margin-top: 10px"
+          onclick="showRegister()"
+          data-i18n="createAccount"
+        ></button>
       </div>
     </div>
 
-    <div class="card">
-      <div class="step active" id="step1">
-        <h2 data-i18n="chooseStyle"></h2>
-        <p class="hint" data-i18n="scratchedHint"></p>
-        <div class="swatches">
-          <button class="swatch-btn" data-style="natural" onclick="selectStyle('natural')">
-            <div class="swatch-preview swatch-natural"></div>
-            <div class="swatch-body"><strong data-i18n="natural"></strong><span data-i18n="smoothColor"></span></div>
-          </button>
-          <button class="swatch-btn" data-style="rallado" onclick="selectStyle('rallado')">
-            <div class="swatch-preview swatch-rallado"></div>
-            <div class="swatch-body"><strong data-i18n="scratched"></strong><span data-i18n="woodGrain"></span></div>
-          </button>
-        </div>
-        <div class="row"><button class="primary" id="btnToStep2" disabled onclick="goToStep(2)" data-i18n="next"></button></div>
-      </div>
+    <!-- ============ REGISTRO ============ -->
+    <div class="wrap" id="registerView" style="display: none">
+      <header>
+        <button class="backlink" onclick="cancelRegister()">
+          ← <span data-i18n="cancel"></span>
+        </button>
+        <div class="eyebrow" data-i18n="workshop"></div>
+        <h1 data-i18n="register"></h1>
+        <p class="sub" data-i18n="registerIntro"></p>
+      </header>
 
-      <div class="step" id="step2">
-        <h2 data-i18n="uploadFurniturePhoto"></h2>
-        <p class="hint" data-i18n="photoHint"></p>
-        <div id="dropzoneWrap">
-          <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-            <div class="icon">🖼️</div>
-            <p data-i18n="choosePhoto"></p>
-          </div>
-          <input type="file" id="fileInput" accept="image/*" style="display:none">
+      <div class="card">
+        <div
+          class="error"
+          id="registerError"
+          style="display: none; margin-bottom: 16px"
+        ></div>
+        <div
+          class="success"
+          id="registerSuccess"
+          style="display: none; margin-bottom: 16px"
+        ></div>
+        <div class="form-field">
+          <label for="regName" data-i18n="fullName"></label>
+          <input
+            type="text"
+            id="regName"
+            data-i18n-placeholder="yourName"
+            autocomplete="name"
+          />
         </div>
-        <div id="previewWrap" style="display:none;">
-          <div class="preview-wrap">
-            <img id="previewImg" alt="Foto del mueble">
-            <div class="preview-info">
-              <p id="previewName"></p><button class="link-btn" onclick="resetImage()" data-i18n="changePhoto"></button>
+        <div class="form-field">
+          <label for="regEmail" data-i18n="email"></label>
+          <input
+            type="email"
+            id="regEmail"
+            data-i18n-placeholder="emailPlaceholder"
+            autocomplete="email"
+          />
+        </div>
+        <div class="form-field">
+          <label for="regPassword" data-i18n="password"></label>
+          <input
+            type="password"
+            id="regPassword"
+            data-i18n-placeholder="minimumPassword"
+            autocomplete="new-password"
+          />
+        </div>
+        <div class="form-field">
+          <label for="regPassword2" data-i18n="confirmPassword"></label>
+          <input
+            type="password"
+            id="regPassword2"
+            data-i18n-placeholder="repeatPassword"
+            autocomplete="new-password"
+            onkeydown="if(event.key==='Enter')handleRegister();"
+          />
+        </div>
+        <div class="row">
+          <button
+            class="ghost"
+            onclick="cancelRegister()"
+            data-i18n="cancel"
+          ></button>
+          <button
+            class="primary"
+            id="btnRegister"
+            onclick="handleRegister()"
+            data-i18n="save"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ VISTA CLIENTE ============ -->
+    <div class="wrap" id="clientApp" style="display: none">
+      <div class="app-shell">
+        <aside class="app-sidebar" aria-label="Navegación del cliente">
+          <div class="sidebar-brand">
+            <span class="sidebar-mark">CT</span
+            ><span data-i18n="clientNavTitle">Cotiza tu mueble</span>
+          </div>
+          <nav class="sidebar-nav">
+            <div class="sidebar-group">
+              <div class="sidebar-label" data-i18n="buyGroup">Comprar</div>
+              <button
+                class="sidebar-link active"
+                type="button"
+                data-nav="client-store"
+              >
+                <span class="sidebar-icon">⌂</span
+                ><span data-i18n="storeTitle">Tienda</span>
+              </button>
+              <button class="sidebar-link" type="button" data-nav="client-cart">
+                <span class="sidebar-icon">▣</span
+                ><span data-i18n="cartTitle">Carrito de compras</span>
+              </button>
+            </div>
+            <div class="sidebar-group">
+              <div class="sidebar-label" data-i18n="purchasesGroup">
+                Mis compras
+              </div>
+              <button
+                class="sidebar-link"
+                type="button"
+                data-nav="client-orders"
+              >
+                <span class="sidebar-icon">□</span
+                ><span data-i18n="myOrdersTitle">Mis pedidos</span>
+              </button>
+            </div>
+            <div class="sidebar-group">
+              <div class="sidebar-label" data-i18n="toolsGroup">
+                Herramientas
+              </div>
+              <button
+                class="sidebar-link"
+                type="button"
+                data-nav="client-quote"
+              >
+                <span class="sidebar-icon">✦</span
+                ><span data-i18n="quoteFurniture">Cotizador IA</span>
+              </button>
+            </div>
+          </nav>
+          <button class="sidebar-logout" type="button" onclick="logout()">
+            ← <span data-i18n="logout"></span>
+          </button>
+        </aside>
+        <main class="app-main">
+          <header>
+            <div class="eyebrow" data-i18n="workshop"></div>
+            <h1 data-i18n="quoteFurniture"></h1>
+            <p class="sub" data-i18n="quoteIntro"></p>
+            <div class="public-banner" id="publicBanner"></div>
+          </header>
+
+          <section
+            class="store-section app-panel"
+            data-panel="client-store"
+            aria-labelledby="storeTitle"
+          >
+            <div class="section-title">
+              <span id="storeTitle" data-i18n="storeTitle"></span
+              ><button
+                class="ghost small"
+                id="refreshStore"
+                data-i18n="refresh"
+                type="button"
+              ></button>
+            </div>
+            <div id="clientProducts" class="product-grid"></div>
+          </section>
+
+          <!-- ============ CARRITO DE COMPRAS ============ -->
+          <section
+            id="cartContainer"
+            class="cart-section app-panel"
+            data-panel="client-cart"
+            aria-label="Carrito de compras"
+          ></section>
+
+          <!-- ============ HISTORIAL DE PEDIDOS DEL CLIENTE ============ -->
+          <section
+            class="orders-history-section app-panel"
+            data-panel="client-orders"
+            aria-labelledby="myOrdersTitle"
+          >
+            <div class="section-title">
+              <span id="myOrdersTitle" data-i18n="myOrdersTitle"></span>
+              <button
+                class="ghost small"
+                id="refreshMyOrders"
+                onclick="window.loadMyOrders?.()"
+                data-i18n="refresh"
+                type="button"
+              ></button>
+            </div>
+            <div id="clientOrdersList" class="orders-history-grid"></div>
+          </section>
+
+          <div class="quote-panel app-panel" data-panel="client-quote">
+            <div class="progress">
+              <div>
+                <div class="bar"><span id="bar1"></span></div>
+                <div class="label" id="lbl1" data-i18n="style"></div>
+              </div>
+              <div>
+                <div class="bar"><span id="bar2"></span></div>
+                <div class="label" id="lbl2" data-i18n="photo"></div>
+              </div>
+              <div>
+                <div class="bar"><span id="bar3"></span></div>
+                <div class="label" id="lbl3" data-i18n="quote"></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="step active" id="step1">
+                <h2 data-i18n="chooseStyle"></h2>
+                <p class="hint" data-i18n="scratchedHint"></p>
+                <div class="swatches">
+                  <button
+                    class="swatch-btn"
+                    data-style="natural"
+                    onclick="selectStyle('natural')"
+                  >
+                    <div class="swatch-preview swatch-natural"></div>
+                    <div class="swatch-body">
+                      <strong data-i18n="natural"></strong
+                      ><span data-i18n="smoothColor"></span>
+                    </div>
+                  </button>
+                  <button
+                    class="swatch-btn"
+                    data-style="rallado"
+                    onclick="selectStyle('rallado')"
+                  >
+                    <div class="swatch-preview swatch-rallado"></div>
+                    <div class="swatch-body">
+                      <strong data-i18n="scratched"></strong
+                      ><span data-i18n="woodGrain"></span>
+                    </div>
+                  </button>
+                </div>
+                <div class="row">
+                  <button
+                    class="primary"
+                    id="btnToStep2"
+                    disabled
+                    onclick="goToStep(2)"
+                    data-i18n="next"
+                  ></button>
+                </div>
+              </div>
+
+              <div class="step" id="step2">
+                <h2 data-i18n="uploadFurniturePhoto"></h2>
+                <p class="hint" data-i18n="photoHint"></p>
+                <div id="dropzoneWrap">
+                  <div
+                    class="dropzone"
+                    id="dropzone"
+                    onclick="document.getElementById('fileInput').click()"
+                  >
+                    <div class="icon">🖼️</div>
+                    <p data-i18n="choosePhoto"></p>
+                  </div>
+                  <input
+                    type="file"
+                    id="fileInput"
+                    accept="image/*"
+                    style="display: none"
+                  />
+                </div>
+                <div id="previewWrap" style="display: none">
+                  <div class="preview-wrap">
+                    <img id="previewImg" alt="Foto del mueble" />
+                    <div class="preview-info">
+                      <p id="previewName"></p>
+                      <button
+                        class="link-btn"
+                        onclick="resetImage()"
+                        data-i18n="changePhoto"
+                      ></button>
+                    </div>
+                  </div>
+                </div>
+                <div id="step2Error"></div>
+                <div class="row">
+                  <button
+                    class="ghost"
+                    onclick="goToStep(1)"
+                    data-i18n="back"
+                  ></button
+                  ><button
+                    class="primary"
+                    id="btnCotizar"
+                    disabled
+                    onclick="runQuote()"
+                    data-i18n="quoteFurnitureButton"
+                  ></button>
+                </div>
+              </div>
+
+              <div class="step" id="step3">
+                <div id="loadingBlock" class="loading">
+                  <div class="spinner"></div>
+                  <p id="loadingMsg" data-i18n="evaluating"></p>
+                </div>
+                <div id="resultBlock" style="display: none"></div>
+                <div id="errorBlock" style="display: none">
+                  <div class="error" id="errorMsg"></div>
+                  <div class="row">
+                    <button
+                      class="ghost"
+                      onclick="goToStep(2)"
+                      data-i18n="back"
+                    ></button
+                    ><button
+                      class="primary"
+                      onclick="runQuote()"
+                      data-i18n="retry"
+                    ></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <footer data-i18n="prototype"></footer>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ============ VISTA DUEÑO ============ -->
+    <div class="wrap wide" id="ownerApp" style="display: none">
+      <div class="app-shell">
+        <aside class="app-sidebar" aria-label="Navegación de administración">
+          <div class="sidebar-brand">
+            <span class="sidebar-mark">CT</span
+            ><span data-i18n="ownerPanel">Panel del dueño</span>
+          </div>
+          <nav class="sidebar-nav">
+            <div class="sidebar-group">
+              <div class="sidebar-label" data-i18n="overviewGroup">Resumen</div>
+              <button
+                class="sidebar-link active"
+                type="button"
+                data-nav="owner-dashboard"
+              >
+                <span class="sidebar-icon">▥</span
+                ><span data-i18n="dashboardNav">Dashboard</span>
+              </button>
+            </div>
+            <div class="sidebar-group">
+              <div class="sidebar-label" data-i18n="customersGroup">
+                Clientes
+              </div>
+              <button
+                class="sidebar-link"
+                type="button"
+                data-nav="owner-ratings"
+              >
+                <span class="sidebar-icon">★</span
+                ><span data-i18n="reviewsTitle">Calificaciones</span>
+              </button>
+            </div>
+            <div class="sidebar-group">
+              <div class="sidebar-label" data-i18n="analysisGroup">
+                Análisis
+              </div>
+              <button
+                class="sidebar-link"
+                type="button"
+                data-nav="owner-report"
+              >
+                <span class="sidebar-icon">↗</span
+                ><span data-i18n="improvementReport">Informe de mejoras</span>
+              </button>
+            </div>
+            <div class="sidebar-group">
+              <div class="sidebar-label" data-i18n="managementGroup">
+                Gestión
+              </div>
+              <button class="sidebar-link" type="button" data-nav="owner-sales">
+                <span class="sidebar-icon">▤</span
+                ><span data-i18n="salesHistory">Historial de ventas</span>
+              </button>
+              <button
+                class="sidebar-link"
+                type="button"
+                data-nav="owner-products"
+              >
+                <span class="sidebar-icon">□</span
+                ><span data-i18n="productsAdminTitle"
+                  >Administrar productos</span
+                >
+              </button>
+            </div>
+          </nav>
+          <button class="sidebar-logout" type="button" onclick="logout()">
+            ← <span data-i18n="logout"></span>
+          </button>
+        </aside>
+        <main class="app-main">
+          <header>
+            <div class="eyebrow" data-i18n="ownerPanel"></div>
+            <h1 data-i18n="ownerOverview"></h1>
+          </header>
+
+          <div
+            id="ownerDashboard"
+            class="app-panel"
+            data-panel="owner-dashboard"
+            style="display: none"
+          >
+            <div class="card">
+              <div class="stat-grid">
+                <div class="stat-card">
+                  <div class="n" id="statUsuarios">–</div>
+                  <div class="l" data-i18n="totalUsersLabel"></div>
+                </div>
+                <div class="stat-card">
+                  <div class="n" id="statProductos">–</div>
+                  <div class="l" data-i18n="totalProductsLabel"></div>
+                </div>
+                <div class="stat-card">
+                  <div class="n" id="statPedidosTotal">–</div>
+                  <div class="l" data-i18n="totalOrdersLabel"></div>
+                </div>
+                <div class="stat-card">
+                  <div class="n" id="statLowStock" style="color: var(--brass)">
+                    –
+                  </div>
+                  <div class="l" data-i18n="lowStockStat"></div>
+                </div>
+                <div class="stat-card">
+                  <div class="n" id="statPendientes">–</div>
+                  <div class="l" data-i18n="pendingOrders"></div>
+                </div>
+                <div class="stat-card">
+                  <div class="n" id="statAtendidos">–</div>
+                  <div class="l" data-i18n="completedOrders"></div>
+                </div>
+                <div class="stat-card">
+                  <div class="n" id="statCalif">–</div>
+                  <div class="l" data-i18n="averageRating"></div>
+                </div>
+                <div class="stat-card">
+                  <div class="n" id="statNumCalif">–</div>
+                  <div class="l" data-i18n="receivedRatings"></div>
+                </div>
+              </div>
+
+              <div class="section-title" data-i18n="pendingOrdersTitle"></div>
+              <div id="listaPendientes"></div>
+
+              <div class="legend">
+                <div
+                  class="section-title"
+                  style="margin-top: 0"
+                  data-i18n="dataHandling"
+                ></div>
+                <div class="legend-item">
+                  <span class="dot pub"></span
+                  ><span
+                    ><b style="color: var(--cream)" data-i18n="public"></b>
+                    <span data-i18n="publicText"></span
+                  ></span>
+                </div>
+                <div class="legend-item">
+                  <span class="dot semi"></span
+                  ><span
+                    ><b style="color: var(--cream)" data-i18n="semiPublic"></b>
+                    <span data-i18n="semiPublicText"></span
+                  ></span>
+                </div>
+                <div class="legend-item">
+                  <span class="dot priv"></span
+                  ><span
+                    ><b style="color: var(--cream)" data-i18n="private"></b>
+                    <span data-i18n="privateText"></span
+                  ></span>
+                </div>
+                <div class="legend-item">
+                  <span class="dot sens"></span
+                  ><span
+                    ><b style="color: var(--cream)" data-i18n="sensitive"></b>
+                    <span data-i18n="sensitiveText"></span
+                  ></span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div id="step2Error"></div>
-        <div class="row"><button class="ghost" onclick="goToStep(1)" data-i18n="back"></button><button class="primary"
-          id="btnCotizar" disabled onclick="runQuote()" data-i18n="quoteFurnitureButton"></button></div>
-      </div>
 
-      <div class="step" id="step3">
-        <div id="loadingBlock" class="loading">
-          <div class="spinner"></div>
-          <p id="loadingMsg" data-i18n="evaluating"></p>
-        </div>
-        <div id="resultBlock" style="display:none;"></div>
-        <div id="errorBlock" style="display:none;">
-          <div class="error" id="errorMsg"></div>
-            <div class="row"><button class="ghost" onclick="goToStep(2)" data-i18n="back"></button><button class="primary"
-              onclick="runQuote()" data-i18n="retry"></button></div>
-        </div>
+          <section
+            class="owner-section app-panel"
+            data-panel="owner-ratings"
+            aria-labelledby="ownerRatingsTitle"
+          >
+            <div class="section-title">
+              <span id="ownerRatingsTitle" data-i18n="reviewsTitle"></span>
+            </div>
+            <div class="card"><div id="listaReviews"></div></div>
+          </section>
+
+          <section
+            class="owner-section app-panel"
+            data-panel="owner-report"
+            aria-labelledby="ownerReportTitle"
+          >
+            <div class="section-title">
+              <span id="ownerReportTitle" data-i18n="improvementReport"></span>
+              <button
+                class="ghost small"
+                onclick="generateReport()"
+                data-i18n="generateReport"
+              ></button>
+            </div>
+            <div class="card">
+              <p class="hint" style="margin-top: 0" data-i18n="reportHint"></p>
+              <div id="reportBox"></div>
+            </div>
+          </section>
+
+          <section
+            class="owner-section app-panel"
+            data-panel="owner-sales"
+            aria-labelledby="salesHistoryTitle"
+          >
+            <div class="section-title">
+              <span id="salesHistoryTitle" data-i18n="salesHistory"></span>
+            </div>
+            <div class="card"><div id="salesHistoryList"></div></div>
+          </section>
+
+          <section
+            class="owner-products app-panel"
+            data-panel="owner-products"
+            aria-labelledby="productsAdminTitle"
+          >
+            <div class="section-title products-list-header">
+              <span data-i18n="productsAdminTitle"></span
+              ><button
+                class="primary small"
+                id="newProduct"
+                type="button"
+                data-i18n="createProduct"
+              ></button>
+            </div>
+            <div
+              id="productFormView"
+              class="card product-admin-card"
+              style="display: none"
+            >
+              <div
+                class="error"
+                id="productFormError"
+                style="display: none; margin-bottom: 16px"
+              ></div>
+              <form id="productForm">
+                <div class="product-form-grid">
+                  <div class="form-field">
+                    <label for="productName" data-i18n="productName"></label
+                    ><input id="productName" required />
+                  </div>
+                  <div class="form-field">
+                    <label
+                      for="productCategory"
+                      data-i18n="productCategory"
+                    ></label
+                    ><select id="productCategory" required></select>
+                  </div>
+                  <div class="form-field">
+                    <label for="productPrice" data-i18n="productPrice"></label
+                    ><input
+                      id="productPrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                  <div class="form-field">
+                    <label
+                      for="productQuantity"
+                      data-i18n="productQuantity"
+                    ></label
+                    ><input
+                      id="productQuantity"
+                      type="number"
+                      min="0"
+                      step="1"
+                      required
+                    />
+                  </div>
+                  <div class="form-field">
+                    <label
+                      for="productMinimum"
+                      data-i18n="productMinimum"
+                    ></label
+                    ><input
+                      id="productMinimum"
+                      type="number"
+                      min="0"
+                      step="1"
+                      required
+                    />
+                  </div>
+                  <div class="form-field">
+                    <label for="productStatus" data-i18n="productStatus"></label
+                    ><select id="productStatus">
+                      <option value="activo" data-i18n="active"></option>
+                      <option value="inactivo" data-i18n="inactive"></option>
+                    </select>
+                  </div>
+                  <div class="form-field product-form-wide">
+                    <label for="productImage" data-i18n="productImage"></label
+                    ><input
+                      id="productImage"
+                      type="url"
+                      data-i18n-placeholder="productImagePlaceholder"
+                    />
+                  </div>
+                  <div class="form-field product-form-wide">
+                    <label
+                      for="productDescription"
+                      data-i18n="productDescription"
+                    ></label
+                    ><textarea id="productDescription"></textarea>
+                  </div>
+                </div>
+                <div class="row">
+                  <button
+                    class="ghost"
+                    id="cancelProductEdit"
+                    type="button"
+                    data-i18n="cancel"
+                  ></button
+                  ><button
+                    class="primary"
+                    id="saveProduct"
+                    type="submit"
+                    data-i18n="createProduct"
+                  ></button>
+                </div>
+              </form>
+            </div>
+            <div id="productListView">
+              <div id="ownerProducts" class="product-table-wrap"></div>
+            </div>
+          </section>
+          <footer data-i18n="authWarning"></footer>
+        </main>
       </div>
     </div>
-    <footer data-i18n="prototype"></footer>
+
+    <!-- ============ CHATBOT (solo cliente) ============ -->
+    <button
+      class="chat-fab"
+      id="chatFab"
+      onclick="toggleChat()"
+      style="display: none"
+    >
+      💬
+    </button>
+    <div class="chat-panel" id="chatPanel">
+      <div class="chat-head">
+        <span data-i18n="assistant"></span
+        ><button
+          class="link-btn"
+          onclick="toggleChat()"
+          data-i18n="close"
+        ></button>
       </div>
-      </main>
-    </div>
-  </div>
-
-  <!-- ============ VISTA DUEÑO ============ -->
-  <div class="wrap wide" id="ownerApp" style="display:none;">
-    <div class="app-shell">
-      <aside class="app-sidebar" aria-label="Navegación de administración">
-        <div class="sidebar-brand"><span class="sidebar-mark">CT</span><span data-i18n="ownerPanel">Panel del dueño</span></div>
-        <nav class="sidebar-nav">
-          <div class="sidebar-group">
-            <div class="sidebar-label" data-i18n="overviewGroup">Resumen</div>
-            <button class="sidebar-link active" type="button" data-nav="owner-dashboard"><span class="sidebar-icon">▥</span><span data-i18n="dashboardNav">Dashboard</span></button>
-          </div>
-          <div class="sidebar-group">
-            <div class="sidebar-label" data-i18n="customersGroup">Clientes</div>
-            <button class="sidebar-link" type="button" data-nav="owner-ratings"><span class="sidebar-icon">★</span><span data-i18n="reviewsTitle">Calificaciones</span></button>
-          </div>
-          <div class="sidebar-group">
-            <div class="sidebar-label" data-i18n="analysisGroup">Análisis</div>
-            <button class="sidebar-link" type="button" data-nav="owner-report"><span class="sidebar-icon">↗</span><span data-i18n="improvementReport">Informe de mejoras</span></button>
-          </div>
-          <div class="sidebar-group">
-            <div class="sidebar-label" data-i18n="managementGroup">Gestión</div>
-            <button class="sidebar-link" type="button" data-nav="owner-sales"><span class="sidebar-icon">▤</span><span data-i18n="salesHistory">Historial de ventas</span></button>
-            <button class="sidebar-link" type="button" data-nav="owner-products"><span class="sidebar-icon">□</span><span data-i18n="productsAdminTitle">Administrar productos</span></button>
-          </div>
-        </nav>
-        <button class="sidebar-logout" type="button" onclick="logout()">← <span data-i18n="logout"></span></button>
-      </aside>
-      <main class="app-main">
-      <header>
-      <div class="eyebrow" data-i18n="ownerPanel"></div>
-      <h1 data-i18n="ownerOverview"></h1>
-    </header>
-
-    <div id="ownerDashboard" class="app-panel" data-panel="owner-dashboard" style="display:none;">
-      <div class="card">
-        <div class="stat-grid">
-          <div class="stat-card">
-            <div class="n" id="statUsuarios">–</div>
-            <div class="l" data-i18n="totalUsersLabel"></div>
-          </div>
-          <div class="stat-card">
-            <div class="n" id="statProductos">–</div>
-            <div class="l" data-i18n="totalProductsLabel"></div>
-          </div>
-          <div class="stat-card">
-            <div class="n" id="statPedidosTotal">–</div>
-            <div class="l" data-i18n="totalOrdersLabel"></div>
-          </div>
-          <div class="stat-card">
-            <div class="n" id="statLowStock" style="color:var(--brass);">–</div>
-            <div class="l" data-i18n="lowStockStat"></div>
-          </div>
-          <div class="stat-card">
-            <div class="n" id="statPendientes">–</div>
-            <div class="l" data-i18n="pendingOrders"></div>
-          </div>
-          <div class="stat-card">
-            <div class="n" id="statAtendidos">–</div>
-            <div class="l" data-i18n="completedOrders"></div>
-          </div>
-          <div class="stat-card">
-            <div class="n" id="statCalif">–</div>
-            <div class="l" data-i18n="averageRating"></div>
-          </div>
-          <div class="stat-card">
-            <div class="n" id="statNumCalif">–</div>
-            <div class="l" data-i18n="receivedRatings"></div>
-          </div>
-        </div>
-
-        <div class="section-title" data-i18n="pendingOrdersTitle"></div>
-        <div id="listaPendientes"></div>
-
-        <div class="legend">
-            <div class="section-title" style="margin-top:0;" data-i18n="dataHandling"></div>
-          <div class="legend-item"><span class="dot pub"></span><span><b style="color:var(--cream)" data-i18n="public"></b>
-              <span data-i18n="publicText"></span></span>
-          </div>
-          <div class="legend-item"><span class="dot semi"></span><span><b style="color:var(--cream)" data-i18n="semiPublic"></b>
-              <span data-i18n="semiPublicText"></span></span>
-          </div>
-          <div class="legend-item"><span class="dot priv"></span><span><b style="color:var(--cream)" data-i18n="private"></b>
-              <span data-i18n="privateText"></span></span></div>
-          <div class="legend-item"><span class="dot sens"></span><span><b style="color:var(--cream)" data-i18n="sensitive"></b>
-              <span data-i18n="sensitiveText"></span></span></div>
-        </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input">
+        <input
+          type="text"
+          id="chatInput"
+          data-i18n-placeholder="chatPlaceholder"
+          onkeydown="if(event.key==='Enter')sendChat();"
+        />
+        <button onclick="sendChat()" data-i18n="send"></button>
       </div>
     </div>
-
-    <section class="owner-section app-panel" data-panel="owner-ratings" aria-labelledby="ownerRatingsTitle">
-      <div class="section-title"><span id="ownerRatingsTitle" data-i18n="reviewsTitle"></span></div>
-      <div class="card"><div id="listaReviews"></div></div>
-    </section>
-
-    <section class="owner-section app-panel" data-panel="owner-report" aria-labelledby="ownerReportTitle">
-      <div class="section-title">
-        <span id="ownerReportTitle" data-i18n="improvementReport"></span>
-        <button class="ghost small" onclick="generateReport()" data-i18n="generateReport"></button>
-      </div>
-      <div class="card">
-        <p class="hint" style="margin-top:0;" data-i18n="reportHint"></p>
-        <div id="reportBox"></div>
-      </div>
-    </section>
-
-    <section class="owner-section app-panel" data-panel="owner-sales" aria-labelledby="salesHistoryTitle">
-      <div class="section-title"><span id="salesHistoryTitle" data-i18n="salesHistory"></span></div>
-      <div class="card"><div id="salesHistoryList"></div></div>
-    </section>
-
-    <section class="owner-products app-panel" data-panel="owner-products" aria-labelledby="productsAdminTitle">
-      <div class="section-title products-list-header"><span data-i18n="productsAdminTitle"></span><button class="primary small" id="newProduct" type="button" data-i18n="createProduct"></button></div>
-      <div id="productFormView" class="card product-admin-card" style="display:none;">
-        <div class="error" id="productFormError" style="display:none;margin-bottom:16px;"></div>
-        <form id="productForm">
-          <div class="product-form-grid">
-            <div class="form-field"><label for="productName" data-i18n="productName"></label><input id="productName" required></div>
-            <div class="form-field"><label for="productCategory" data-i18n="productCategory"></label><select id="productCategory" required></select></div>
-            <div class="form-field"><label for="productPrice" data-i18n="productPrice"></label><input id="productPrice" type="number" min="0" step="0.01" required></div>
-            <div class="form-field"><label for="productQuantity" data-i18n="productQuantity"></label><input id="productQuantity" type="number" min="0" step="1" required></div>
-            <div class="form-field"><label for="productMinimum" data-i18n="productMinimum"></label><input id="productMinimum" type="number" min="0" step="1" required></div>
-            <div class="form-field"><label for="productStatus" data-i18n="productStatus"></label><select id="productStatus"><option value="activo" data-i18n="active"></option><option value="inactivo" data-i18n="inactive"></option></select></div>
-            <div class="form-field product-form-wide"><label for="productImage" data-i18n="productImage"></label><input id="productImage" type="url" data-i18n-placeholder="productImagePlaceholder"></div>
-            <div class="form-field product-form-wide"><label for="productDescription" data-i18n="productDescription"></label><textarea id="productDescription"></textarea></div>
-          </div>
-          <div class="row"><button class="ghost" id="cancelProductEdit" type="button" data-i18n="cancel"></button><button class="primary" id="saveProduct" type="submit" data-i18n="createProduct"></button></div>
-        </form>
-      </div>
-      <div id="productListView">
-        <div id="ownerProducts" class="product-table-wrap"></div>
-      </div>
-    </section>
-    <footer data-i18n="authWarning"></footer>
-      </main>
-    </div>
-  </div>
-
-  <!-- ============ CHATBOT (solo cliente) ============ -->
-  <button class="chat-fab" id="chatFab" onclick="toggleChat()" style="display:none;">💬</button>
-  <div class="chat-panel" id="chatPanel">
-    <div class="chat-head"><span data-i18n="assistant"></span><button class="link-btn"
-      onclick="toggleChat()" data-i18n="close"></button></div>
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input">
-      <input type="text" id="chatInput" data-i18n-placeholder="chatPlaceholder"
-        onkeydown="if(event.key==='Enter')sendChat();">
-      <button onclick="sendChat()" data-i18n="send"></button>
-    </div>
-  </div>
-</body>
-
+  </body>
 </html>

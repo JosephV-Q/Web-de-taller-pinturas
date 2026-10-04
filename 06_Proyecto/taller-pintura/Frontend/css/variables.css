@@ -1,10 +1,18 @@
 /* Variables de diseño */
-:root{
-  --bg:#1c1410; --bg-panel:#251b15; --bg-raised:#2d2119;
-  --wood-dark:#4a2f1c; --wood-mid:#7a5637; --wood-light:#a3764a;
-  --brass:#c6923f; --sage:#7c9068; --cream:#efe6d8; --muted:#a3937f;
-  --line: rgba(239,230,216,0.12); --danger:#c1573d;
-  --font-display:'Fraunces', Georgia, serif;
-  --font-body:'Work Sans', -apple-system, sans-serif;
-  --font-mono:'JetBrains Mono', monospace;
+:root {
+  --bg: #f9f8f6;
+  --bg-panel: #f9f8f6;
+  --bg-raised: #e6dfd5;
+  --wood-dark: #2d2a26;
+  --wood-mid: #4a6b6c;
+  --wood-light: #e6dfd5;
+  --brass: #d96b43;
+  --sage: #4a6b6c;
+  --cream: #2d2a26;
+  --muted: #6f6a63;
+  --line: rgba(45, 42, 38, 0.15);
+  --danger: #b44432;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Plus Jakarta Sans", -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
