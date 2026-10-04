@@ -1,33 +1,35 @@
-# Taller de pintura de muebles — estructura separada
+# Taller de pintura
 
-Este proyecto parte del prototipo original y conserva su flujo funcional, separando responsabilidades en HTML, CSS y JavaScript.
+Aplicación web con frontend Vite y backend Node.js/Express conectado a PostgreSQL.
 
 ## Estructura
 
-- `index.html`: estructura de las vistas.
-- `css/`: estilos separados por responsabilidad.
-- `js/config/`: configuración del negocio.
-- `js/state/`: estado de la aplicación.
-- `js/navigation/`: navegación entre roles.
-- `js/client/`: flujo de cotización, imagen, resultado y calificación.
-- `js/owner/`: dashboard e informes del dueño.
-- `js/services/`: autenticación, almacenamiento, pedidos y comunicación con IA.
-- `js/utils/`: utilidades.
+- `Frontend/`: interfaz HTML, CSS y JavaScript, configuración Vite y build estático.
+- `Backend/`: API Express, acceso a Neon/PostgreSQL, esquema, migraciones y semillas.
 
-## Importante
+## Desarrollo local
 
-La aplicación cuenta con backend seguro en Node.js/Express conectado a PostgreSQL (Neon), autenticación JWT/bcrypt unificada por roles (`cliente` / `dueno`), y análisis con IA en el servidor.
+Usa dos terminales desde la raíz del repositorio.
 
-## Ejecución
+Terminal 1, API:
 
-El proyecto usa módulos ES (`type="module"`). Debe servirse desde un servidor HTTP local/hosting, no abrirse directamente como `file://`.
-
-Ejemplo:
-
-```bash
-python -m http.server 8000
+```powershell
+cd Backend
+npm install
+npm run dev
 ```
 
-Luego abrir:
+Terminal 2, interfaz:
 
-`http://localhost:8000/`
+```powershell
+cd Frontend
+npm install
+npm run dev
+```
+
+Abre `http://localhost:5173`. Vite reenvía `/api` a `http://localhost:3000`.
+Configura las variables del backend en `Backend/.env`; el frontend usa
+`Frontend/.env` solo cuando la API está en otro dominio.
+
+Consulta [Backend/README.md](Backend/README.md) para Neon, variables de entorno,
+pruebas y despliegue.

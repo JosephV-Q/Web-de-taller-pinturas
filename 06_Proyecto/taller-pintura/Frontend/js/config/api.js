@@ -1,7 +1,7 @@
 // Punto único de comunicación con el backend.
 // En desarrollo, "/api" es redirigido al backend por el proxy de Vite
 // (ver vite.config.js). En producción, define VITE_API_BASE_URL apuntando
-// a la URL pública del backend (ver README-BACKEND.md).
+// a la URL pública del backend (ver Backend/README.md).
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 const TOKEN_KEY = "taller_token";

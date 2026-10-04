@@ -4,7 +4,7 @@ import pg from "pg";
 const { Pool } = pg;
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("Falta DATABASE_URL en las variables de entorno (server/.env)");
+  throw new Error("Falta DATABASE_URL en las variables de entorno (Backend/.env)");
 }
 
 // Neon exige SSL. rejectUnauthorized:false evita problemas con la cadena de

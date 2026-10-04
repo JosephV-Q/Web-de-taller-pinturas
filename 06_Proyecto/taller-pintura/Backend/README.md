@@ -1,36 +1,19 @@
 # Backend + Neon — guía de integración
 
-Este documento explica cómo conectar la base de datos de Neon que ya
-tienes creada y levantar el backend que la usa. El frontend (`index.html`,
-`css/`, `js/`) no necesita cambios adicionales: ya está apuntando a este
-backend a través de `/api`.
+Este documento explica cómo conectar Neon y levantar la API. El frontend
+vive en `Frontend/` y consume esta API mediante `/api`.
 
 ## 0. Qué se agregó
 
 ```
 taller-pintura/
-├── index.html, css/, js/        ← frontend (Vite), ya actualizado para hablar con /api
-├── vite.config.js               ← ahora incluye un proxy /api -> backend en desarrollo
-├── .env.example                 ← solo se usa si despliegas frontend y backend por separado
-└── server/                      ← NUEVO: backend Node/Express + Neon (Postgres)
-    ├── package.json
-    ├── .env.example
-    ├── schema.sql                ← tablas a crear en Neon
-    └── src/
-        ├── index.js              ← arranca el servidor Express
-        ├── db.js                 ← conexión a Neon (pg.Pool)
-        ├── middleware/auth.js    ← valida el token de sesión (JWT)
-        ├── services/
-        │   ├── anthropic.js      ← llamadas a la IA (la API key vive solo aquí)
-        │   └── pricing.js        ← fórmula de precio/horas/fecha de entrega
-        └── routes/
-            ├── auth.routes.js    ← POST /api/auth/register, /api/auth/login
-            ├── quotes.routes.js  ← POST /api/quotes (analiza imagen + crea el pedido)
-            ├── orders.routes.js  ← GET /api/orders, PATCH /api/orders/:id/atendido
-            ├── ratings.routes.js ← POST/GET /api/ratings
-            ├── report.routes.js  ← GET/POST /api/report
-            ├── chat.routes.js    ← POST /api/chat
-            └── stats.routes.js   ← GET /api/stats/public
+├── Frontend/              ← Vite, HTML, CSS y JavaScript
+└── Backend/               ← Express, PostgreSQL, migraciones y semillas
+  ├── schema.sql
+  └── src/
+    ├── routes/         ← auth, quotes, orders, ratings, report, chat, stats, products
+    ├── services/       ← Gemini, precios y localización
+    └── middleware/     ← autenticación JWT
 ```
 
 ## 1. Tomar los datos de conexión de Neon
@@ -46,15 +29,15 @@ taller-pintura/
 
 ## 2. Crear las tablas
 
-Tienes dos formas de correr `server/schema.sql`:
+Tienes dos formas de correr `Backend/schema.sql`:
 
 **Opción A — SQL Editor de Neon (más simple):**
-Abre el "SQL Editor" en Neon Console, pega el contenido de `server/schema.sql`
+Abre el "SQL Editor" en Neon Console, pega el contenido de `Backend/schema.sql`
 y ejecútalo.
 
 **Opción B — desde tu terminal (necesitas `psql` instalado):**
 ```bash
-psql "postgresql://usuario:password@...neon.tech/basedatos?sslmode=require" -f server/schema.sql
+psql "postgresql://usuario:password@...neon.tech/basedatos?sslmode=require" -f Backend/schema.sql
 ```
 
 Esto crea 4 tablas: `usuarios`, `pedidos`, `calificaciones`, `informes`.
@@ -62,11 +45,11 @@ Esto crea 4 tablas: `usuarios`, `pedidos`, `calificaciones`, `informes`.
 ## 3. Configurar las variables de entorno del backend
 
 ```bash
-cd server
+cd Backend
 cp .env.example .env
 ```
 
-Edita `server/.env`:
+Edita `Backend/.env`:
 
 | Variable | De dónde sale |
 |---|---|
@@ -76,12 +59,12 @@ Edita `server/.env`:
 | `FRONTEND_ORIGIN` | `http://localhost:5173` en desarrollo |
 | `PORT` | `3000` (o el que prefieras) |
 
-**Nunca subas `server/.env` a git** — ya está en `.gitignore`.
+**Nunca subas `Backend/.env` a git** — está ignorado por Git.
 
 ## 4. Levantar el backend
 
 ```bash
-cd server
+cd Backend
 npm install
 npm run dev
 ```
@@ -97,9 +80,10 @@ aparece apenas arranca el servidor — revísalo ahí antes de seguir.
 
 ## 5. Levantar el frontend
 
-En otra terminal, desde la raíz del proyecto (no `server/`):
+En otra terminal, desde la raíz del proyecto:
 
 ```bash
+cd Frontend
 npm install
 npm run dev
 ```
@@ -123,7 +107,7 @@ necesitas configurar nada más para desarrollo local.
 ## 7. Desplegar a producción
 
 - **Backend**: cualquier hosting de Node (Render, Railway, Fly.io, etc.).
-  Configura ahí las mismas variables de `server/.env`.
+  Configura ahí las mismas variables de `Backend/.env`.
 - **Frontend**: `npm run build` genera `dist/`, que puedes subir a un
   hosting estático (Vercel, Netlify, Cloudflare Pages...).
 - Como frontend y backend quedarán en dominios distintos:
