@@ -13,7 +13,7 @@ import productsRoutes from "./routes/products.routes.js";
 
 const app = express();
 
-app.use(cors({ origin: process.env.FRONTEND_ORIGIN || "*" }));
+app.use(cors({ origin: process.env.FRONTEND_ORIGIN || "web-de-taller-pinturas-frontend.vercel.app" }));
 app.use(express.json({ limit: "8mb" })); // las fotos de los muebles viajan en base64
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
