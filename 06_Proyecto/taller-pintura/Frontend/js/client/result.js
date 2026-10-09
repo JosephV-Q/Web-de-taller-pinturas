@@ -49,16 +49,8 @@ export function renderResult(analysis, quote, queueInfo, style) {
       <span>${t("queueBefore")}</span>
       <b>${queueInfo.pendingHoursBefore.toFixed(1)} ${t("queueHours")}</b>
     </div>
-    <div class="rating-box" id="ratingBox">
-      <h2 style="font-size:15px;text-align:center;">${t("experience")}</h2>
-      <div class="stars" id="starsInput"></div>
-      <textarea id="comentarioInput" placeholder="${t("suggestion")}"></textarea>
-      <div class="row"><button class="primary" onclick="window.submitRating()">${t("sendRating")}</button></div>
-    </div>
     <div class="row"><button class="ghost" onclick="location.reload()">${t("anotherFurniture")}</button></div>
   `;
-
-  buildStarInput();
 }
 
 window.addEventListener("languagechange", () => {
