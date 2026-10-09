@@ -74,3 +74,13 @@ CREATE TRIGGER pedidos_atendido_bu
 
 COMMIT;
 
+UPDATE pedidos
+   SET notificado_dueno_at   = now(),
+       notificado_cliente_at = now()
+ WHERE notificado_dueno_at IS NULL;
+
+UPDATE pedidos
+   SET notificado_atendido_at = now()
+ WHERE estado = 'atendido' AND notificado_atendido_at IS NULL;
+
+UPDATE calificaciones SET procesada_at = now() WHERE procesada_at IS NULL;
