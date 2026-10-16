@@ -5,6 +5,8 @@ import { renderResult } from "./result.js";
 import { goToStep, selectStyle } from "./steps.js";
 import { resetImage } from "./image.js";
 import { t } from "../i18n.js";
+import { setActivePanel } from "../navigation/navigation.js";
+import { getRol } from "../config/api.js";
 
 const loadingMsgs = [
   "evaluating",
@@ -21,6 +23,51 @@ export async function loadPublicBanner() {
       `<span><b>${atendidos}</b> ${t("completedOrders").toLowerCase()}</span>`;
   } catch {
     document.getElementById("publicBanner").innerHTML = "";
+  }
+}
+
+export function resetQuote() {
+  resetImage();
+  state.style = null;
+  state.currentOrderId = null;
+
+  document.querySelectorAll(".swatch-btn").forEach(button => {
+    button.classList.remove("selected");
+  });
+
+  const btnStep2 = document.getElementById("btnToStep2");
+  if (btnStep2) btnStep2.disabled = true;
+
+  const loadingBlock = document.getElementById("loadingBlock");
+  if (loadingBlock) loadingBlock.style.display = "none";
+
+  const resultBlock = document.getElementById("resultBlock");
+  if (resultBlock) {
+    resultBlock.style.display = "none";
+    resultBlock.innerHTML = "";
+  }
+
+  const errorBlock = document.getElementById("errorBlock");
+  if (errorBlock) errorBlock.style.display = "none";
+
+  goToStep(1);
+}
+
+export async function goToMainPageAfterQuote() {
+  resetQuote();
+  try {
+    await window.loadMyOrders?.();
+  } catch (e) {
+    console.error("Error al refrescar pedidos:", e);
+  }
+  window.loadPublicBanner?.();
+  window.loadStore?.();
+
+  const rol = getRol();
+  if (rol === "dueno" || rol === "dueño") {
+    window.enterOwner?.("owner-dashboard");
+  } else {
+    setActivePanel("client-store");
   }
 }
 
@@ -45,8 +92,9 @@ export async function runQuote() {
     state.currentOrderId = orderId;
 
     clearInterval(timer);
-    renderResult(analysis, quote, queueInfo, state.style);
+    renderResult(analysis, quote, queueInfo, state.style, orderId);
     loadPublicBanner();
+    window.loadMyOrders?.();
   } catch (error) {
     clearInterval(timer);
     console.error(error);
@@ -63,4 +111,6 @@ export function initClient() {
   window.selectStyle = selectStyle;
   window.goToStep = goToStep;
   window.resetImage = resetImage;
+  window.resetQuote = resetQuote;
+  window.goToMainPageAfterQuote = goToMainPageAfterQuote;
 }

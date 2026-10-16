@@ -18,3 +18,7 @@ export async function registerUser({ nombre, email, password, rol }) {
     return { ok: false, code: "ERROR", message: error.message };
   }
 }
+
+export async function verifySession() {
+  return apiFetch("/auth/me", { auth: true });
+}

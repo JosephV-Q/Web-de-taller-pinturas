@@ -1,6 +1,6 @@
-import { loginUser, registerUser } from "../services/authService.js";
-import { clearSession } from "../config/api.js";
-import { goHome, setActivePanel } from "../navigation/navigation.js";
+import { loginUser, registerUser, verifySession } from "../services/authService.js";
+import { clearSession, setSession } from "../config/api.js";
+import { goHome, enterClient, enterOwner } from "../navigation/navigation.js";
 import { t } from "../i18n.js";
 import { clearCart } from "../cart/cart.js";
 
@@ -49,33 +49,57 @@ export async function handleLogin() {
     return;
   }
 
-  document.getElementById("roleGate").style.display = "none";
-
   if (result.rol === "dueno" || result.rol === "dueño") {
-    document.getElementById("ownerApp").style.display = "block";
-    document.getElementById("ownerDashboard").style.display = "block";
-    window.loadOwnerDashboard?.();
-    window.loadOwnerProducts?.();
-    setActivePanel("owner-dashboard");
+    enterOwner("owner-dashboard");
   } else {
-    document.getElementById("clientApp").style.display = "block";
-    document.getElementById("chatFab").style.display = "flex";
-    window.loadPublicBanner?.();
-    window.loadStore?.();
-    window.loadMyOrders?.();
-    setActivePanel("client-store");
+    enterClient("client-store");
   }
 }
 
 export function logout() {
+  document.documentElement.classList.remove("has-session");
   clearCart();
   clearSession();
+  sessionStorage.removeItem("active_panel");
   const emailInput = document.getElementById("loginEmail");
   const passwordInput = document.getElementById("loginPassword");
   if (emailInput) emailInput.value = "";
   if (passwordInput) passwordInput.value = "";
   hideMessage("loginError");
   goHome();
+}
+
+export async function checkAndRestoreSession() {
+  const token = localStorage.getItem("taller_token");
+  const rol = localStorage.getItem("taller_rol");
+
+  if (!token) {
+    goHome();
+    return;
+  }
+
+  const isOwner = rol === "dueno" || rol === "dueño";
+  const savedPanel = sessionStorage.getItem("active_panel");
+
+  if (isOwner) {
+    const validPanel = (savedPanel && savedPanel.startsWith("owner-")) ? savedPanel : "owner-dashboard";
+    enterOwner(validPanel);
+  } else {
+    const validPanel = (savedPanel && savedPanel.startsWith("client-")) ? savedPanel : "client-store";
+    enterClient(validPanel);
+  }
+
+  try {
+    const res = await verifySession();
+    if (res?.user) {
+      setSession({ token, rol: res.user.rol, nombre: res.user.nombre });
+    }
+  } catch (error) {
+    if (error?.status === 401) {
+      console.warn("Sesión expirada o token inválido, cerrando sesión.");
+      logout();
+    }
+  }
 }
 
 export function showRegister() {

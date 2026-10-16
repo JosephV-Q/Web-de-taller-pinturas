@@ -15,6 +15,16 @@
     <link rel="stylesheet" href="css/client.css" />
     <link rel="stylesheet" href="css/owner.css" />
     <link rel="stylesheet" href="css/chatbot.css" />
+    <script>
+      if (localStorage.getItem("taller_token")) {
+        document.documentElement.classList.add("has-session");
+      }
+    </script>
+    <style>
+      html.has-session #roleGate {
+        display: none !important;
+      }
+    </style>
   </head>
 
   <body>

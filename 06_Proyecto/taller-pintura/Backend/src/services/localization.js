@@ -13,6 +13,7 @@ const productTranslations = {
 
 const phraseTranslations = {
   pequeño: "small",
+  pequeno: "small",
   mediano: "medium",
   grande: "large",
   natural: "natural",

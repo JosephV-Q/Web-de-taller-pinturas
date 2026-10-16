@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Califica tu pedido</title>
+  <style>
+    body{font-family:system-ui,sans-serif;max-width:480px;margin:40px auto;padding:0 16px;color:#222}
+    .stars span{font-size:44px;cursor:pointer;color:#ccc}
+    .stars span.on{color:#f5a623}
+    textarea{width:100%;height:90px;margin:12px 0;padding:8px;box-sizing:border-box}
+    button{padding:10px 20px;font-size:16px;cursor:pointer}
+  </style>
+</head>
+<body>
+  <h2 id="titulo">Califica tu pedido</h2>
+  <p id="msg">Cargando…</p>
+  <div id="form" hidden>
+    <div class="stars" id="stars"></div>
+    <textarea id="comentario" maxlength="1000" placeholder="Cuéntanos cómo fue tu experiencia (opcional)"></textarea>
+    <button id="enviar">Enviar calificación</button>
+  </div>
+<script>
+  const API = "https://web-de-taller-pinturas-backend.vercel.app/api"; // cambiar si no funciona el backend de vercel
+  const token = new URLSearchParams(location.search).get("t");
+  const $ = id => document.getElementById(id);
+  let sel = 0;
+
+  function pintar() {
+    [...$("stars").children].forEach((s, i) => s.classList.toggle("on", i < sel));
+  }
+  for (let i = 1; i <= 5; i++) {
+    const s = document.createElement("span");
+    s.textContent = "★";
+    s.onclick = () => { sel = i; pintar(); };
+    $("stars").appendChild(s);
+  }
+
+  async function init() {
+    try {
+      const r = await fetch(`${API}/ratings/public/${encodeURIComponent(token)}`);
+      if (!r.ok) throw 0;
+      const p = await r.json();
+      if (p.yaCalificado) { $("msg").textContent = "Ya recibimos tu calificación. ¡Gracias!"; return; }
+      if (p.estado !== "atendido") { $("msg").textContent = "Tu pedido aún no está atendido."; return; }
+      $("msg").textContent = `Hola ${p.nombre}, ¿cómo estuvo la atención de tu pedido #${p.id}?`;
+      $("form").hidden = false;
+    } catch { $("msg").textContent = "El enlace no es válido."; }
+  }
+
+  $("enviar").onclick = async () => {
+    if (!sel) { alert("Selecciona de 1 a 5 estrellas."); return; }
+    const r = await fetch(`${API}/ratings/public/${encodeURIComponent(token)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estrellas: sel, comentario: $("comentario").value })
+    });
+    $("form").hidden = true;
+    $("msg").textContent = r.ok ? "¡Gracias por tu calificación!" : "No pudimos guardar la calificación (quizá ya fue enviada).";
+  };
+  init();
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@ import { initReports } from "./owner/reports.js";
 import { initChat } from "./client/chat.js";
 import { initStore } from "./client/store.js";
 import { initOwnerProducts } from "./owner/products.js";
-import { handleLogin, handleRegister, showRegister, cancelRegister, logout } from "./auth/auth.js";
+import { handleLogin, handleRegister, showRegister, cancelRegister, logout, checkAndRestoreSession } from "./auth/auth.js";
 import { initI18n } from "./i18n.js";
 import { initCart } from "./cart/cart.js";
 import { initHistory } from "./client/history.js";
@@ -24,6 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initOwnerProducts();
   initReports();
   initChat();
+
+  checkAndRestoreSession();
 
   window.addEventListener("languagechange", () => {
     if (document.getElementById("clientApp").style.display !== "none") {
@@ -44,4 +46,5 @@ document.addEventListener("DOMContentLoaded", () => {
   window.showRegister = showRegister;
   window.cancelRegister = cancelRegister;
   window.logout = logout;
+  window.checkAndRestoreSession = checkAndRestoreSession;
 });

@@ -2,6 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { pool } from "../db.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -67,6 +68,24 @@ router.post("/login", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "No se pudo iniciar sesión. Intenta de nuevo." });
+  }
+});
+
+router.get("/me", requireAuth(), async (req, res) => {
+  try {
+    const userId = req.user.sub || req.user.id;
+    const { rows } = await pool.query(
+      "SELECT id, nombre, email, rol FROM usuarios WHERE id = $1",
+      [userId]
+    );
+    if (!rows.length) {
+      return res.status(401).json({ message: "Usuario no encontrado." });
+    }
+    const user = rows[0];
+    res.json({ ok: true, user: { id: user.id, nombre: user.nombre, email: user.email, rol: user.rol } });
+  } catch (error) {
+    console.error("Error en GET /auth/me:", error);
+    res.status(500).json({ message: "Error al verificar sesión." });
   }
 });
 

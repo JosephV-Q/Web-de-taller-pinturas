@@ -24,6 +24,14 @@ export function getRol() {
   return localStorage.getItem(ROL_KEY);
 }
 
+export function getToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function getNombre() {
+  return localStorage.getItem(NOMBRE_KEY);
+}
+
 export async function apiFetch(path, { method = "GET", body, auth = false } = {}) {
   const headers = {
     "Content-Type": "application/json",
@@ -44,7 +52,9 @@ export async function apiFetch(path, { method = "GET", body, auth = false } = {}
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.message || "Error de comunicación con el servidor.");
+    const error = new Error(data.message || "Error de comunicación con el servidor.");
+    error.status = response.status;
+    throw error;
   }
 
   return data;

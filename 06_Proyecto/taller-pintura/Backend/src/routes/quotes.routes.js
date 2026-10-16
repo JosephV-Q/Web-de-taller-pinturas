@@ -32,11 +32,18 @@ router.post("/", requireAuth(), async (req, res) => {
     const pendingBefore = Number(pendingRows[0].horas);
     const deliveryDate = addBusinessDays(new Date(), pendingBefore + quote.horas, CAPACIDAD_HORAS_POR_DIA);
 
+    let dbTamano = "mediano";
+    if (analysis.tamano === "pequeño" || analysis.tamano === "pequeno") {
+      dbTamano = "pequeno";
+    } else if (analysis.tamano === "grande") {
+      dbTamano = "grande";
+    }
+
     const { rows } = await pool.query(
-      `INSERT INTO pedidos (usuario_id, mueble, tamano, dificultad, estilo, precio, horas, estado, fecha_entrega)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'pendiente', $8)
+      `INSERT INTO pedidos (usuario_id, tipo_pedido, mueble, tamano, dificultad, estilo, precio, horas, estado, fecha_entrega)
+       VALUES ($1, 'cotizacion', $2, $3, $4, $5, $6, $7, 'pendiente', $8)
        RETURNING id`,
-      [req.user.sub, analysis.tipo_mueble, analysis.tamano, analysis.dificultad, estilo, quote.precio, quote.horas, deliveryDate]
+      [req.user.sub, analysis.tipo_mueble, dbTamano, analysis.dificultad, estilo, quote.precio, quote.horas, deliveryDate]
     );
 
     res.json({
