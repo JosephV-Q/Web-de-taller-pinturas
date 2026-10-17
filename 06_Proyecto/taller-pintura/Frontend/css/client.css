@@ -463,6 +463,15 @@ textarea {
   flex-wrap: wrap;
   gap: 8px;
 }
+.order-acceptance-message {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(85, 139, 110, 0.12);
+  border: 1px solid var(--sage);
+  color: var(--sage);
+  font-size: 13px;
+}
 .history-title-wrap {
   display: flex;
   align-items: center;

@@ -98,6 +98,12 @@ export async function loadMyOrders() {
       }
 
       card.innerHTML = contentHtml;
+      if (order.estado === "atendido") {
+        const acceptanceMessage = document.createElement("p");
+        acceptanceMessage.className = "order-acceptance-message";
+        acceptanceMessage.textContent = t("orderAcceptedMessage");
+        card.insertBefore(acceptanceMessage, card.querySelector(".history-card-header").nextSibling);
+      }
       container.appendChild(card);
     });
   } catch (error) {
