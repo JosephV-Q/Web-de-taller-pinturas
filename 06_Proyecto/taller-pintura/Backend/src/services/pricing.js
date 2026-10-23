@@ -4,7 +4,7 @@
 
 const PRECIOS_BASE_COP = { "pequeño": 80000, "mediano": 150000, "grande": 280000 };
 const HORAS_BASE = { "pequeño": 4, "mediano": 8, "grande": 14 };
-const MULTIPLICADOR_ESTILO = { natural: 1.0, rallado: 1.4 };
+const MULTIPLICADOR_ESTILO = { natural: 1.0, rallado: 1.4, solo_color: 1.0 };
 const HORAS_EXTRA_RALLADO_FACTOR = 1.25;
 
 export const CAPACIDAD_HORAS_POR_DIA = 6;
@@ -12,7 +12,7 @@ export const CAPACIDAD_HORAS_POR_DIA = 6;
 export function computeQuote(analysis, estilo) {
   const { tamano, dificultad } = analysis;
   const dificultadFactor = 1 + (dificultad - 1) * 0.15;
-  const estiloFactorPrecio = MULTIPLICADOR_ESTILO[estilo];
+  const estiloFactorPrecio = MULTIPLICADOR_ESTILO[estilo] ?? 1.0;
 
   let precio = PRECIOS_BASE_COP[tamano] * dificultadFactor * estiloFactorPrecio;
   precio = Math.round(precio / 1000) * 1000;

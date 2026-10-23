@@ -51,7 +51,7 @@ export async function loadMyOrders() {
       if (isPurchase) {
         const itemsList = (order.detalle || []).map(d => `
           <div class="history-item-row">
-            <span>${escapeHtml(d.productoNombre)} <strong>x${d.cantidad}</strong></span>
+            <span>${escapeHtml(d.productoNombre)}${d.color ? ` <em>(${escapeHtml(d.color)})</em>` : ""} <strong>x${d.cantidad}</strong></span>
             <span class="history-item-price">${formatPrice(d.precioUnitario)}</span>
           </div>
         `).join("");
@@ -84,7 +84,7 @@ export async function loadMyOrders() {
           </div>
           <div class="history-details-box">
             <p class="history-furniture-desc">
-              <strong>${capitalize(order.mueble || "Mueble")}</strong> · ${order.estilo ? capitalize(order.estilo) : ""}
+              <strong>${capitalize(order.mueble || "Mueble")}</strong> · ${order.estilo ? capitalize(order.estilo) : ""}${order.color ? ` · ${t("color")}: ${escapeHtml(order.color)}` : ""}
             </p>
             <p class="meta">
               ${order.horas ? `${order.horas} h · ` : ""}${t("deliveryDate")}: ${formatDate(order.fechaEntrega)}

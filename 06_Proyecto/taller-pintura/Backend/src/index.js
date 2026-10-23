@@ -10,6 +10,7 @@ import reportRoutes from "./routes/report.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import statsRoutes from "./routes/stats.routes.js";
 import productsRoutes from "./routes/products.routes.js";
+import colorsRoutes from "./routes/colors.routes.js";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/api/report", reportRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/products", productsRoutes);
+app.use("/api/colors", colorsRoutes);
 
 // Manejador global de errores: evita que excepciones no capturadas cierren el servidor
 app.use((err, req, res, _next) => {

@@ -7,7 +7,8 @@ export async function markAtendido(id) {
 export async function createPurchaseOrder(cartItems) {
   const items = cartItems.map(item => ({
     producto_id: item.producto_id ?? item.productoId ?? item.id,
-    cantidad: item.cantidad
+    cantidad: item.cantidad,
+    color: item.color || null
   }));
   return apiFetch("/orders", {
     method: "POST",

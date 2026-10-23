@@ -1,8 +1,9 @@
 import { getLanguage, t } from "../i18n.js";
 import { escapeHtml } from "../utils/helpers.js";
 import { createPurchaseOrder } from "../services/orders.js";
+import { showToast } from "../utils/toast.js";
 
-// Estado en memoria del carrito: array de { producto_id, nombre, precio, cantidad, imagen_url, cantidad_disponible }
+// Estado en memoria del carrito: array de { producto_id, nombre, precio, cantidad, imagen_url, cantidad_disponible, color }
 let cart = [];
 
 function formatPrice(price) {
@@ -16,52 +17,73 @@ export function getCart() {
   return cart;
 }
 
-export function addToCart(producto, cantidad = 1) {
+export function addToCart(producto, cantidad = 1, color = null) {
   const prodId = producto.id ?? producto.producto_id;
   const cantDisponible = producto.cantidadDisponible ?? producto.cantidad_disponible ?? 0;
   const precio = typeof producto.precio === "number" ? producto.precio : parseFloat(producto.precio || 0);
   const nombre = producto.nombre || "";
   const imagenUrl = producto.imagenUrl || producto.imagen_url || null;
+  const selectedColor = typeof color === "string" && color.trim() ? color.trim() : null;
 
-  const existingItem = cart.find(item => item.producto_id === prodId);
+  // Total acumulado actual en el carrito para este producto físico
+  const currentTotalInCart = cart
+    .filter(item => item.producto_id === prodId)
+    .reduce((sum, item) => sum + item.cantidad, 0);
+
+  if (currentTotalInCart + cantidad > cantDisponible) {
+    showToast(t("stockExceeded"), "error");
+    showCartMessage(t("stockExceeded"), "error");
+    return false;
+  }
+
+  // Buscar si ya existe este ítem específico con la misma tonalidad/color
+  const existingItem = cart.find(
+    item => item.producto_id === prodId && (item.color || null) === selectedColor
+  );
 
   if (existingItem) {
-    const totalDeseado = existingItem.cantidad + cantidad;
-    if (totalDeseado > existingItem.cantidad_disponible) {
-      showCartMessage(t("stockExceeded"), "error");
-      return false;
-    }
-    existingItem.cantidad = totalDeseado;
+    existingItem.cantidad += cantidad;
   } else {
-    if (cantidad > cantDisponible) {
-      showCartMessage(t("stockExceeded"), "error");
-      return false;
-    }
     cart.push({
       producto_id: prodId,
       nombre: nombre,
       precio: precio,
       cantidad: cantidad,
       imagen_url: imagenUrl,
-      cantidad_disponible: cantDisponible
+      cantidad_disponible: cantDisponible,
+      color: selectedColor
     });
   }
 
-  showCartMessage(`${t("addToCart")}: ${nombre}`, "success");
+  const colorLabel = selectedColor ? ` (${selectedColor})` : "";
+  const successMsg = `${t("productAddedToCart")}: ${nombre}${colorLabel}`;
+
+  showToast(successMsg, "success");
+  showCartMessage(successMsg, "success");
   renderCart();
   return true;
 }
 
-export function updateQuantity(producto_id, nuevaCantidad) {
+export function updateQuantity(producto_id, nuevaCantidad, color = null) {
   const parsedQty = parseInt(nuevaCantidad, 10);
+  const selectedColor = typeof color === "string" && color.trim() ? color.trim() : null;
+
   if (isNaN(parsedQty) || parsedQty <= 0) {
-    return removeFromCart(producto_id);
+    return removeFromCart(producto_id, selectedColor);
   }
 
-  const item = cart.find(i => i.producto_id === producto_id);
+  const item = cart.find(
+    i => i.producto_id === producto_id && (i.color || null) === selectedColor
+  );
   if (!item) return false;
 
-  if (parsedQty > item.cantidad_disponible) {
+  // Validar stock total disponible considerando otros colores del mismo producto
+  const otherItemsQty = cart
+    .filter(i => i.producto_id === producto_id && i !== item)
+    .reduce((sum, i) => sum + i.cantidad, 0);
+
+  if (otherItemsQty + parsedQty > item.cantidad_disponible) {
+    showToast(t("stockExceeded"), "error");
     showCartMessage(t("stockExceeded"), "error");
     renderCart();
     return false;
@@ -72,8 +94,11 @@ export function updateQuantity(producto_id, nuevaCantidad) {
   return true;
 }
 
-export function removeFromCart(producto_id) {
-  cart = cart.filter(item => item.producto_id !== producto_id);
+export function removeFromCart(producto_id, color = null) {
+  const selectedColor = typeof color === "string" && color.trim() ? color.trim() : null;
+  cart = cart.filter(
+    item => !(item.producto_id === producto_id && (item.color || null) === selectedColor)
+  );
   renderCart();
 }
 
@@ -112,7 +137,7 @@ export function renderCart() {
 
   let totalGeneral = 0;
 
-  const itemsHtml = cart.map(item => {
+  const itemsHtml = cart.map((item, idx) => {
     const subtotal = item.precio * item.cantidad;
     totalGeneral += subtotal;
 
@@ -120,23 +145,30 @@ export function renderCart() {
       ? `<img src="${escapeHtml(item.imagen_url)}" alt="${escapeHtml(item.nombre)}" class="cart-item-img">`
       : `<div class="cart-item-img-placeholder">${escapeHtml(t("noImage"))}</div>`;
 
+    const colorBadge = item.color
+      ? `<div class="cart-item-color"><small><strong>${escapeHtml(t("color"))}:</strong> ${escapeHtml(item.color)}</small></div>`
+      : "";
+
+    const encodedColor = item.color ? escapeHtml(JSON.stringify(item.color)) : "null";
+
     return `
       <div class="cart-item" data-id="${item.producto_id}">
         ${imgTag}
         <div class="cart-item-info">
           <h4>${escapeHtml(item.nombre)}</h4>
+          ${colorBadge}
           <p class="cart-item-price">${formatPrice(item.precio)}</p>
         </div>
         <div class="cart-item-qty">
-          <button type="button" class="qty-btn" onclick="window.cartModule.changeQty(${item.producto_id}, ${item.cantidad - 1})">-</button>
-          <span class="qty-val">${item.cantidad}</span>
-          <button type="button" class="qty-btn" onclick="window.cartModule.changeQty(${item.producto_id}, ${item.cantidad + 1})">+</button>
+          <button type="button" class="qty-btn" aria-label="Disminuir cantidad" onclick="window.cartModule.changeQty(${item.producto_id}, ${item.cantidad - 1}, ${encodedColor})">-</button>
+          <span class="qty-val" aria-label="Cantidad actual: ${item.cantidad}">${item.cantidad}</span>
+          <button type="button" class="qty-btn" aria-label="Aumentar cantidad" onclick="window.cartModule.changeQty(${item.producto_id}, ${item.cantidad + 1}, ${encodedColor})">+</button>
         </div>
         <div class="cart-item-subtotal">
           <span>${escapeHtml(t("subtotal"))}:</span>
           <strong>${formatPrice(subtotal)}</strong>
         </div>
-        <button type="button" class="link-btn cart-remove-btn" onclick="window.cartModule.removeFromCart(${item.producto_id})">
+        <button type="button" class="link-btn cart-remove-btn" onclick="window.cartModule.removeFromCart(${item.producto_id}, ${encodedColor})">
           ${escapeHtml(t("remove"))}
         </button>
       </div>
@@ -180,8 +212,10 @@ export async function confirmPurchase() {
     const createdOrder = await createPurchaseOrder(cart);
 
     if (createdOrder && Math.abs((createdOrder.precio || 0) - cartTotalCalculated) > 0.01) {
+      showToast(`${t("priceChangedNotice")} (${formatPrice(createdOrder.precio)})`, "warning");
       showCartMessage(`${t("priceChangedNotice")} (${formatPrice(createdOrder.precio)})`, "warning");
     } else {
+      showToast(t("purchaseSuccess"), "success");
       showCartMessage(t("purchaseSuccess"), "success");
     }
 
@@ -191,7 +225,9 @@ export async function confirmPurchase() {
     window.loadStore?.();
     window.loadMyOrders?.();
   } catch (error) {
-    showCartMessage(error.message || t("tryAgain"), "error");
+    const errorMsg = error.message || t("purchaseFailed");
+    showToast(errorMsg, "error");
+    showCartMessage(errorMsg, "error");
   } finally {
     if (btn && cart.length > 0) {
       btn.disabled = false;
@@ -204,8 +240,8 @@ export function initCart() {
   window.cartModule = {
     addToCart,
     updateQuantity,
-    changeQty: (id, newQty) => updateQuantity(id, newQty),
-    removeFromCart,
+    changeQty: (id, newQty, color = null) => updateQuantity(id, newQty, color),
+    removeFromCart: (id, color = null) => removeFromCart(id, color),
     clearCart,
     confirmPurchase,
     getCart,

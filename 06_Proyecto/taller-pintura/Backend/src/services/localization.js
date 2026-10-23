@@ -18,6 +18,16 @@ const phraseTranslations = {
   grande: "large",
   natural: "natural",
   rallado: "wood grain",
+  solo_color: "solid color",
+  "solo color": "solid color",
+  "blanco lino": "linen white",
+  "verde salvia": "sage green",
+  terracota: "terracotta",
+  "nogal clásico": "classic walnut",
+  "nogal clasico": "classic walnut",
+  "roble natural": "natural oak",
+  "gris carbón": "charcoal gray",
+  "gris carbon": "charcoal gray",
   mueble: "furniture",
   silla: "chair",
   mesa: "table",
@@ -61,9 +71,11 @@ export function localizeOrder(order, language) {
     mueble: translateValue(order.mueble, language),
     tamano: translateValue(order.tamano, language),
     estilo: translateValue(order.estilo, language),
+    color: translateValue(order.color, language),
     detalle: order.detalle?.map(item => ({
       ...item,
-      productoNombre: translateValue(item.productoNombre, language)
+      productoNombre: translateValue(item.productoNombre, language),
+      color: translateValue(item.color, language)
     })) ?? order.detalle
   };
 }

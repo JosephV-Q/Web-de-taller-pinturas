@@ -1,13 +1,15 @@
-import { capitalize } from "../utils/helpers.js";
+import { capitalize, escapeHtml } from "../utils/helpers.js";
 import { t, getLanguage } from "../i18n.js";
 import { state } from "../state/state.js";
 import { resetQuote, goToMainPageAfterQuote } from "./client.js";
 
 let lastResult;
 
-export function renderResult(analysis, quote, queueInfo, style, orderId) {
+export function renderResult(analysis, quote, queueInfo, style, orderId, color) {
   const currentOrderId = orderId || state.currentOrderId;
-  lastResult = { analysis, quote, queueInfo, style, orderId: currentOrderId };
+  const currentColor = color !== undefined ? color : state.color;
+
+  lastResult = { analysis, quote, queueInfo, style, orderId: currentOrderId, color: currentColor };
   document.getElementById("loadingBlock").style.display = "none";
   const block = document.getElementById("resultBlock");
   block.style.display = "block";
@@ -26,9 +28,16 @@ export function renderResult(analysis, quote, queueInfo, style, orderId) {
     year: "numeric"
   });
 
-  const estiloLabel = style === "natural"
-    ? t("natural")
-    : t("scratched") + (getLanguage() === "es" ? " (veta de madera)" : " (wood grain)");
+  let estiloLabel = t("natural");
+  if (style === "rallado") {
+    estiloLabel = t("scratched") + (getLanguage() === "es" ? " (veta de madera)" : " (wood grain)");
+  } else if (style === "solo_color") {
+    estiloLabel = t("soloColor");
+  }
+
+  const colorRow = currentColor
+    ? `<div class="ticket-row"><span class="k">${t("color")}</span><span class="v"><strong>${escapeHtml(currentColor)}</strong></span></div>`
+    : "";
 
   block.innerHTML = `
     <div class="ticket-head">
@@ -41,6 +50,7 @@ export function renderResult(analysis, quote, queueInfo, style, orderId) {
     </div>
     <hr class="divider">
     <div class="ticket-row"><span class="k">${t("style")}</span><span class="v">${estiloLabel}</span></div>
+    ${colorRow}
     <div class="ticket-row"><span class="k">${t("size")}</span><span class="v">${capitalize(analysis.tamano)}</span></div>
     <div class="ticket-row"><span class="k">${t("difficulty")}</span><span class="v">${analysis.dificultad} / 5</span></div>
     <div class="justif">${analysis.justificacion || ""}</div>
@@ -74,7 +84,8 @@ window.addEventListener("languagechange", () => {
       lastResult.quote,
       lastResult.queueInfo,
       lastResult.style,
-      lastResult.orderId
+      lastResult.orderId,
+      lastResult.color
     );
   }
 });

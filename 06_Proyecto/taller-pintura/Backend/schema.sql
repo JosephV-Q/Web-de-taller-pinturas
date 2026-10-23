@@ -13,7 +13,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- ---------------------------------------------------------
 CREATE TYPE rol_usuario     AS ENUM ('cliente', 'dueno');
 CREATE TYPE tamano_mueble   AS ENUM ('pequeno', 'mediano', 'grande');
-CREATE TYPE estilo_pintura  AS ENUM ('natural', 'rallado');
+CREATE TYPE estilo_pintura  AS ENUM ('natural', 'rallado', 'solo_color');
 CREATE TYPE estado_pedido   AS ENUM ('pendiente', 'atendido');
 CREATE TYPE estado_producto AS ENUM ('activo', 'inactivo');
 CREATE TYPE tipo_pedido     AS ENUM ('cotizacion', 'compra');
@@ -72,6 +72,20 @@ CREATE INDEX idx_productos_categoria ON productos (categoria_id);
 CREATE INDEX idx_productos_estado    ON productos (estado);
 
 -- ---------------------------------------------------------
+-- COLORES (Catálogo de Pinturas y Tonalidades del Taller)
+-- ---------------------------------------------------------
+CREATE TABLE colores (
+  id              INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  nombre          VARCHAR(100)  NOT NULL,
+  hex             VARCHAR(20)   NOT NULL,
+  descripcion     TEXT          NULL,
+  activo          BOOLEAN       NOT NULL DEFAULT TRUE,
+  CONSTRAINT uq_colores_nombre UNIQUE (nombre)
+);
+
+CREATE INDEX idx_colores_activo ON colores (activo);
+
+-- ---------------------------------------------------------
 -- PEDIDOS (Cotizaciones de Restauración y Compras de Catálogo)
 -- (imagen_id se agrega con FK más abajo por relación circular con IMAGENES)
 -- ---------------------------------------------------------
@@ -84,6 +98,8 @@ CREATE TABLE pedidos (
   tamano          tamano_mueble   NULL,
   dificultad      SMALLINT        NULL,
   estilo          estilo_pintura  NULL,
+  color           VARCHAR(100)    NULL,
+  color_id        INTEGER         NULL,
   precio          NUMERIC(10,2)   NOT NULL,
   horas           NUMERIC(5,1)    NULL,
   fecha_creacion  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -92,6 +108,9 @@ CREATE TABLE pedidos (
   CONSTRAINT fk_pedidos_usuario
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
     ON DELETE CASCADE,
+  CONSTRAINT fk_pedidos_color
+    FOREIGN KEY (color_id) REFERENCES colores(id)
+    ON DELETE SET NULL,
   CONSTRAINT chk_pedidos_dificultad
     CHECK (dificultad IS NULL OR (dificultad BETWEEN 1 AND 5)),
   CONSTRAINT chk_pedidos_precio
@@ -103,6 +122,7 @@ CREATE TABLE pedidos (
 CREATE INDEX idx_pedidos_usuario ON pedidos (usuario_id);
 CREATE INDEX idx_pedidos_estado  ON pedidos (estado);
 CREATE INDEX idx_pedidos_tipo    ON pedidos (tipo_pedido);
+CREATE INDEX idx_pedidos_color   ON pedidos (color);
 
 -- ---------------------------------------------------------
 -- DETALLE_PEDIDO (Ítems de Pedidos tipo 'compra')
@@ -113,6 +133,7 @@ CREATE TABLE detalle_pedido (
   producto_id     INTEGER         NOT NULL,
   cantidad        INTEGER         NOT NULL,
   precio_unitario NUMERIC(10,2)   NOT NULL,
+  color           VARCHAR(100)    NULL,
   CONSTRAINT fk_detalle_pedido_pedido
     FOREIGN KEY (pedido_id) REFERENCES pedidos(id)
     ON DELETE CASCADE,

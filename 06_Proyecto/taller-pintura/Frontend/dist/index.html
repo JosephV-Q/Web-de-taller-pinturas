@@ -19,8 +19,8 @@
         display: none !important;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-BFid5DcU.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BJ2CTI5Q.css">
+    <script type="module" crossorigin src="/assets/index-C6-GaYze.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CG6OCMCM.css">
   </head>
 
   <body>
@@ -306,6 +306,23 @@
                       ><span data-i18n="woodGrain"></span>
                     </div>
                   </button>
+                  <button
+                    class="swatch-btn"
+                    data-style="solo_color"
+                    onclick="selectStyle('solo_color')"
+                  >
+                    <div class="swatch-preview swatch-solo-color"></div>
+                    <div class="swatch-body">
+                      <strong data-i18n="soloColor"></strong
+                      ><span data-i18n="soloColorDesc"></span>
+                    </div>
+                  </button>
+                </div>
+                <div id="colorSelectorContainer" class="color-selector-section" style="display: none;">
+                  <div class="section-title" style="margin-top: 18px; margin-bottom: 6px;" data-i18n="chooseColorTitle"></div>
+                  <p class="hint" style="margin-top: 0; margin-bottom: 12px;" data-i18n="chooseColorHint"></p>
+                  <div id="colorOptionsGrid" class="color-options-grid" role="radiogroup" aria-label="Tonalidades disponibles"></div>
+                  <div id="colorSelectionError" class="field-error" style="display: none; margin-top: 10px;" role="alert"></div>
                 </div>
                 <div class="row">
                   <button
@@ -748,5 +765,6 @@
         <button onclick="sendChat()" data-i18n="send"></button>
       </div>
     </div>
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="false"></div>
   </body>
 </html>

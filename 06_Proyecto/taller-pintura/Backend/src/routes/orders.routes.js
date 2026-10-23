@@ -17,12 +17,13 @@ router.post("/", requireAuth(), async (req, res) => {
     return res.status(400).json({ message: "El carrito de compras no contiene productos." });
   }
 
-  // Consolidar e inspeccionar ítems duplicados en el mismo array
+  // Consolidar e inspeccionar ítems duplicados en el mismo array (incluyendo tonalidad/color si existe)
   const consolidatedMap = new Map();
 
   for (const item of items) {
     const prodId = parseInt(item.producto_id ?? item.productoId, 10);
     const cant = parseInt(item.cantidad, 10);
+    const color = typeof item.color === "string" && item.color.trim() ? item.color.trim().slice(0, 100) : null;
 
     if (isNaN(prodId) || prodId <= 0) {
       return res.status(400).json({ message: "Se especificó un identificador de producto inválido." });
@@ -31,17 +32,16 @@ router.post("/", requireAuth(), async (req, res) => {
       return res.status(400).json({ message: "La cantidad solicitada debe ser un número entero mayor a 0." });
     }
 
-    if (consolidatedMap.has(prodId)) {
-      consolidatedMap.set(prodId, consolidatedMap.get(prodId) + cant);
+    const key = `${prodId}:::${color || ""}`;
+    if (consolidatedMap.has(key)) {
+      const existing = consolidatedMap.get(key);
+      existing.cantidad += cant;
     } else {
-      consolidatedMap.set(prodId, cant);
+      consolidatedMap.set(key, { producto_id: prodId, cantidad: cant, color });
     }
   }
 
-  const consolidatedItems = Array.from(consolidatedMap.entries()).map(([producto_id, cantidad]) => ({
-    producto_id,
-    cantidad
-  }));
+  const consolidatedItems = Array.from(consolidatedMap.values());
 
   const usuarioId = req.user.sub || req.user.id;
   const client = await pool.connect();
@@ -51,20 +51,30 @@ router.post("/", requireAuth(), async (req, res) => {
 
     let totalCalculado = 0;
     const validatedProducts = [];
+    const productsCache = new Map();
 
-    // a) SELECT FOR UPDATE por producto y verificaciones (existencia, estado activo, stock)
+    // Suma de cantidades totales requeridas por producto_id para control de inventario
+    const totalQtyPerProduct = new Map();
     for (const item of consolidatedItems) {
+      totalQtyPerProduct.set(
+        item.producto_id,
+        (totalQtyPerProduct.get(item.producto_id) || 0) + item.cantidad
+      );
+    }
+
+    // a) SELECT FOR UPDATE por producto y verificaciones (existencia, estado activo, stock total)
+    for (const [prodId, requiredQty] of totalQtyPerProduct.entries()) {
       const { rows } = await client.query(
         `SELECT id, nombre, precio, cantidad_disponible, estado
          FROM productos
          WHERE id = $1
          FOR UPDATE`,
-        [item.producto_id]
+        [prodId]
       );
 
       if (!rows.length) {
         await client.query("ROLLBACK");
-        return res.status(409).json({ message: `El producto especificado (ID ${item.producto_id}) ya no existe.` });
+        return res.status(409).json({ message: `El producto especificado (ID ${prodId}) ya no existe.` });
       }
 
       const p = rows[0];
@@ -74,39 +84,47 @@ router.post("/", requireAuth(), async (req, res) => {
         return res.status(409).json({ message: `El producto '${p.nombre}' está inactivo y no se puede comprar.` });
       }
 
-      if (p.cantidad_disponible < item.cantidad) {
+      if (p.cantidad_disponible < requiredQty) {
         await client.query("ROLLBACK");
         return res.status(409).json({
-          message: `Stock insuficiente para '${p.nombre}'. Disponible: ${p.cantidad_disponible}, solicitado: ${item.cantidad}.`
+          message: `Stock insuficiente para '${p.nombre}'. Disponible: ${p.cantidad_disponible}, solicitado: ${requiredQty}.`
         });
       }
 
-      const precioUnitario = parseFloat(p.precio);
-      totalCalculado += precioUnitario * item.cantidad;
-
-      validatedProducts.push({
-        producto_id: p.id,
-        nombre: p.nombre,
-        precio_unitario: precioUnitario,
-        cantidad: item.cantidad
-      });
+      productsCache.set(prodId, p);
     }
 
     // b) UPDATE productos SET cantidad_disponible con doble chequeo de concurrencia
-    for (const item of validatedProducts) {
+    for (const [prodId, totalQty] of totalQtyPerProduct.entries()) {
+      const p = productsCache.get(prodId);
       const updateRes = await client.query(
         `UPDATE productos
          SET cantidad_disponible = cantidad_disponible - $1
          WHERE id = $2 AND cantidad_disponible >= $1`,
-        [item.cantidad, item.producto_id]
+        [totalQty, prodId]
       );
 
       if (updateRes.rowCount !== 1) {
         await client.query("ROLLBACK");
         return res.status(409).json({
-          message: `Ocurrió un conflicto de concurrencia al actualizar el inventario del producto '${item.nombre}'. Intenta de nuevo.`
+          message: `Ocurrió un conflicto de concurrencia al actualizar el inventario del producto '${p.nombre}'. Intenta de nuevo.`
         });
       }
+    }
+
+    // c) Preparar ítems para detalle
+    for (const item of consolidatedItems) {
+      const p = productsCache.get(item.producto_id);
+      const precioUnitario = parseFloat(p.precio);
+      totalCalculado += precioUnitario * item.cantidad;
+
+      validatedProducts.push({
+        producto_id: item.producto_id,
+        nombre: p.nombre,
+        precio_unitario: precioUnitario,
+        cantidad: item.cantidad,
+        color: item.color
+      });
     }
 
     // d) Insertar registro en pedidos (tipo_pedido = 'compra', estado = 'pendiente')
@@ -118,14 +136,14 @@ router.post("/", requireAuth(), async (req, res) => {
     );
     const newOrder = orderRows[0];
 
-    // e) Insertar filas en detalle_pedido con el precio histórico leído en el paso (a)
+    // e) Insertar filas en detalle_pedido con el precio histórico y color si aplica
     const details = [];
     for (const item of validatedProducts) {
       const { rows: detailRows } = await client.query(
-        `INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario)
-         VALUES ($1, $2, $3, $4)
-         RETURNING id, pedido_id AS "pedidoId", producto_id AS "productoId", cantidad, precio_unitario::float AS "precioUnitario"`,
-        [newOrder.id, item.producto_id, item.cantidad, item.precio_unitario]
+        `INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario, color)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, pedido_id AS "pedidoId", producto_id AS "productoId", cantidad, precio_unitario::float AS "precioUnitario", color`,
+        [newOrder.id, item.producto_id, item.cantidad, item.precio_unitario, item.color || null]
       );
       details.push({
         ...detailRows[0],
@@ -165,6 +183,7 @@ router.get("/mine", requireAuth(), async (req, res) => {
          p.tamano,
          p.dificultad,
          p.estilo,
+         p.color,
          p.precio::float AS precio,
          p.horas,
          p.estado,
@@ -188,6 +207,7 @@ router.get("/mine", requireAuth(), async (req, res) => {
            pr.nombre AS "productoNombre",
            pr.imagen_url AS "imagenUrl",
            d.cantidad,
+           d.color,
            d.precio_unitario::float AS "precioUnitario"
          FROM detalle_pedido d
          JOIN productos pr ON d.producto_id = pr.id
@@ -232,6 +252,7 @@ router.get("/", requireAuth("dueno"), async (req, res) => {
          p.tamano,
          p.dificultad,
          p.estilo,
+         p.color,
          p.precio::float AS precio,
          p.horas,
          p.estado,
@@ -254,6 +275,7 @@ router.get("/", requireAuth("dueno"), async (req, res) => {
            d.producto_id AS "productoId",
            pr.nombre AS "productoNombre",
            d.cantidad,
+           d.color,
            d.precio_unitario::float AS "precioUnitario"
          FROM detalle_pedido d
          JOIN productos pr ON d.producto_id = pr.id

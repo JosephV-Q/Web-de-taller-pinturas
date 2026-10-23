@@ -7,13 +7,16 @@ import { computeQuote, addBusinessDays, CAPACIDAD_HORAS_POR_DIA } from "../servi
 const router = Router();
 
 router.post("/", requireAuth(), async (req, res) => {
-  const { imageBase64, mediaType, estilo } = req.body || {};
+  const { imageBase64, mediaType, estilo, color } = req.body || {};
 
   if (!imageBase64 || !mediaType) {
     return res.status(400).json({ message: "Falta la imagen del mueble." });
   }
-  if (!["natural", "rallado"].includes(estilo)) {
+  if (!["natural", "rallado", "solo_color"].includes(estilo)) {
     return res.status(400).json({ message: "Estilo inválido." });
+  }
+  if (["rallado", "solo_color"].includes(estilo) && (!color || typeof color !== "string" || !color.trim())) {
+    return res.status(400).json({ message: "Debes seleccionar un color o tonalidad para este estilo." });
   }
 
   try {
@@ -39,18 +42,21 @@ router.post("/", requireAuth(), async (req, res) => {
       dbTamano = "grande";
     }
 
+    const selectedColor = ["rallado", "solo_color"].includes(estilo) && color ? color.trim().slice(0, 100) : null;
+
     const { rows } = await pool.query(
-      `INSERT INTO pedidos (usuario_id, tipo_pedido, mueble, tamano, dificultad, estilo, precio, horas, estado, fecha_entrega)
-       VALUES ($1, 'cotizacion', $2, $3, $4, $5, $6, $7, 'pendiente', $8)
+      `INSERT INTO pedidos (usuario_id, tipo_pedido, mueble, tamano, dificultad, estilo, color, precio, horas, estado, fecha_entrega)
+       VALUES ($1, 'cotizacion', $2, $3, $4, $5, $6, $7, $8, 'pendiente', $9)
        RETURNING id`,
-      [req.user.sub, analysis.tipo_mueble, dbTamano, analysis.dificultad, estilo, quote.precio, quote.horas, deliveryDate]
+      [req.user.sub, analysis.tipo_mueble, dbTamano, analysis.dificultad, estilo, selectedColor, quote.precio, quote.horas, deliveryDate]
     );
 
     res.json({
       analysis,
       quote,
       queueInfo: { pendingHoursBefore: pendingBefore, deliveryDate },
-      orderId: rows[0].id
+      orderId: rows[0].id,
+      color: selectedColor
     });
   } catch (error) {
     console.error(error);

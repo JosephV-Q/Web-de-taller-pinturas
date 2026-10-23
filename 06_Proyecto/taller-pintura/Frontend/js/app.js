@@ -11,9 +11,11 @@ import { handleLogin, handleRegister, showRegister, cancelRegister, logout, chec
 import { initI18n } from "./i18n.js";
 import { initCart } from "./cart/cart.js";
 import { initHistory } from "./client/history.js";
+import { initToast } from "./utils/toast.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   initI18n();
+  initToast();
   initNavigation();
   initClient();
   initStore();
@@ -33,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
       window.loadStore?.();
       window.loadMyOrders?.();
       window.cartModule?.renderCart?.();
+      window.renderColorGrid?.();
     }
     if (document.getElementById("ownerApp").style.display !== "none") {
       window.loadOwnerDashboard?.();

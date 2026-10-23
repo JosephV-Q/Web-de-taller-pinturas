@@ -2,7 +2,7 @@ import { state } from "../state/state.js";
 import { getPublicStats } from "../services/storage.js";
 import { requestQuote } from "../services/ai.js";
 import { renderResult } from "./result.js";
-import { goToStep, selectStyle } from "./steps.js";
+import { goToStep, selectStyle, selectColor, renderColorGrid } from "./steps.js";
 import { resetImage } from "./image.js";
 import { t } from "../i18n.js";
 import { setActivePanel } from "../navigation/navigation.js";
@@ -29,11 +29,27 @@ export async function loadPublicBanner() {
 export function resetQuote() {
   resetImage();
   state.style = null;
+  state.color = null;
+  state.colorHex = null;
   state.currentOrderId = null;
 
   document.querySelectorAll(".swatch-btn").forEach(button => {
     button.classList.remove("selected");
   });
+
+  const colorContainer = document.getElementById("colorSelectorContainer");
+  if (colorContainer) colorContainer.style.display = "none";
+
+  document.querySelectorAll(".color-option-btn").forEach(btn => {
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-checked", "false");
+  });
+
+  const colorError = document.getElementById("colorSelectionError");
+  if (colorError) {
+    colorError.style.display = "none";
+    colorError.textContent = "";
+  }
 
   const btnStep2 = document.getElementById("btnToStep2");
   if (btnStep2) btnStep2.disabled = true;
@@ -87,12 +103,13 @@ export async function runQuote() {
     const { analysis, quote, queueInfo, orderId } = await requestQuote(
       state.imageBase64,
       state.mediaType,
-      state.style
+      state.style,
+      state.color
     );
     state.currentOrderId = orderId;
 
     clearInterval(timer);
-    renderResult(analysis, quote, queueInfo, state.style, orderId);
+    renderResult(analysis, quote, queueInfo, state.style, orderId, state.color);
     loadPublicBanner();
     window.loadMyOrders?.();
   } catch (error) {
@@ -109,6 +126,8 @@ export function initClient() {
   window.loadPublicBanner = loadPublicBanner;
   window.runQuote = runQuote;
   window.selectStyle = selectStyle;
+  window.selectColor = selectColor;
+  window.renderColorGrid = renderColorGrid;
   window.goToStep = goToStep;
   window.resetImage = resetImage;
   window.resetQuote = resetQuote;

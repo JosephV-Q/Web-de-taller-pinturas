@@ -1,5 +1,7 @@
 export const state = {
   style: null,
+  color: null,
+  colorHex: null,
   imageBase64: null,
   mediaType: null,
   currentOrderId: null,

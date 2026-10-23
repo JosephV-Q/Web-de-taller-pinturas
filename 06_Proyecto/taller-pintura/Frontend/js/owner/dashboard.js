@@ -23,8 +23,8 @@ function renderSalesHistory(orders) {
       ? new Date(order.fechaCreacion).toLocaleDateString(getLanguage() === "en" ? "en-US" : "es-CO")
       : "—";
     const description = isPurchase
-      ? (order.detalle || []).map(item => `${escapeHtml(item.productoNombre)} x${item.cantidad}`).join(", ") || t("orderItems")
-      : `${capitalize(order.mueble || "Mueble")} · ${order.estilo ? capitalize(order.estilo) : ""}`;
+      ? (order.detalle || []).map(item => `${escapeHtml(item.productoNombre)}${item.color ? ` (${escapeHtml(item.color)})` : ""} x${item.cantidad}`).join(", ") || t("orderItems")
+      : `${capitalize(order.mueble || "Mueble")} · ${order.estilo ? capitalize(order.estilo) : ""}${order.color ? ` · ${t("color")}: ${escapeHtml(order.color)}` : ""}`;
     const buyer = order.nombreComprador ? `<div class="meta">${t("buyer")}: ${escapeHtml(order.nombreComprador)}</div>` : "";
     row.className = "sales-history-row";
     row.innerHTML = `
@@ -96,7 +96,7 @@ export async function loadOwnerDashboard() {
 
       if (isPurchase) {
         const itemsSummary = (order.detalle || []).map(d =>
-          `${escapeHtml(d.productoNombre)} x${d.cantidad}`
+          `${escapeHtml(d.productoNombre)}${d.color ? ` (${escapeHtml(d.color)})` : ""} x${d.cantidad}`
         ).join(", ");
         detailsText = `
           <div>
@@ -108,7 +108,7 @@ export async function loadOwnerDashboard() {
       } else {
         detailsText = `
           <div>
-            <strong>${t("quoteType")}:</strong> ${capitalize(order.mueble || "Mueble")} · ${order.estilo ? capitalize(order.estilo) : ""}
+            <strong>${t("quoteType")}:</strong> ${capitalize(order.mueble || "Mueble")} · ${order.estilo ? capitalize(order.estilo) : ""}${order.color ? ` · ${t("color")}: ${escapeHtml(order.color)}` : ""}
           </div>
           <div class="meta">${t("buyer")}: ${escapeHtml(order.nombreComprador || "—")}</div>
           <div class="meta">${order.horas ? `${order.horas} h · ` : ""}${t("deliveryDate").toLowerCase()} ${order.fechaEntrega ? new Date(order.fechaEntrega).toLocaleDateString(getLanguage() === "en" ? "en-US" : "es-CO") : "—"}</div>

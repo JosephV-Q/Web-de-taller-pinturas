@@ -2,10 +2,10 @@ import { apiFetch } from "../config/api.js";
 
 // Genera la cotización completa: el backend analiza la imagen con IA,
 // calcula precio/horas con las reglas del negocio y registra el pedido.
-export async function requestQuote(imageBase64, mediaType, estilo) {
+export async function requestQuote(imageBase64, mediaType, estilo, color = null) {
   const data = await apiFetch("/quotes", {
     method: "POST",
-    body: { imageBase64, mediaType, estilo },
+    body: { imageBase64, mediaType, estilo, color },
     auth: true
   });
 
@@ -16,7 +16,8 @@ export async function requestQuote(imageBase64, mediaType, estilo) {
       pendingHoursBefore: data.queueInfo.pendingHoursBefore,
       deliveryDate: new Date(data.queueInfo.deliveryDate)
     },
-    orderId: data.orderId
+    orderId: data.orderId,
+    color: data.color
   };
 }
 
