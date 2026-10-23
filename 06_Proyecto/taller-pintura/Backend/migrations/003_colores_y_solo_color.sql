@@ -13,16 +13,7 @@
 -- =========================================================
 
 -- 1. Agregar 'solo_color' al tipo ENUM estilo_pintura si aún no existe
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_enum
-    WHERE enumtypid = 'estilo_pintura'::regtype
-      AND enumlabel = 'solo_color'
-  ) THEN
-    ALTER TYPE estilo_pintura ADD VALUE 'solo_color';
-  END IF;
-END $$;
+ALTER TYPE estilo_pintura ADD VALUE IF NOT EXISTS 'solo_color';
 
 -- 2. Crear tabla de COLORES (Catálogo de tonalidades disponibles en el taller)
 CREATE TABLE IF NOT EXISTS colores (
