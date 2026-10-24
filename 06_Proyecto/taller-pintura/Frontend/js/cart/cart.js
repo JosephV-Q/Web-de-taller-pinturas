@@ -168,7 +168,7 @@ export function renderCart() {
           <span>${escapeHtml(t("subtotal"))}:</span>
           <strong>${formatPrice(subtotal)}</strong>
         </div>
-        <button type="button" class="link-btn cart-remove-btn" onclick="window.cartModule.removeFromCart(${item.producto_id}, ${encodedColor})">
+        <button type="button" class="link-btn cart-remove-btn" data-product-id="${item.producto_id}" data-color="${escapeHtml(item.color || "")}">
           ${escapeHtml(t("remove"))}
         </button>
       </div>
@@ -237,6 +237,19 @@ export async function confirmPurchase() {
 }
 
 export function initCart() {
+  const container = document.getElementById("cartContainer");
+  container?.addEventListener("click", event => {
+    if (!(event.target instanceof Element)) return;
+
+    const button = event.target.closest(".cart-remove-btn");
+    if (!button || !container.contains(button)) return;
+
+    const productoId = Number(button.dataset.productId);
+    if (!Number.isInteger(productoId)) return;
+
+    removeFromCart(productoId, button.dataset.color || null);
+  });
+
   window.cartModule = {
     addToCart,
     updateQuantity,
