@@ -8,7 +8,7 @@ const router = Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 router.post("/register", async (req, res) => {
-  const { nombre, email, password, rol } = req.body || {};
+  const { nombre, email, password } = req.body || {};
 
   if (!nombre || nombre.trim().length < 3) {
     return res.status(400).json({ message: "Ingresa tu nombre completo." });
@@ -20,11 +20,6 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ message: "La contraseña debe tener al menos 6 caracteres." });
   }
 
-  let finalRole = "cliente";
-  if (rol === "dueño" || rol === "dueno") {
-    finalRole = "dueno";
-  }
-
   try {
     const existing = await pool.query("SELECT id FROM usuarios WHERE email = $1", [email]);
     if (existing.rows.length) {
@@ -34,7 +29,7 @@ router.post("/register", async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     await pool.query(
       `INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES ($1, $2, $3, $4)`,
-      [nombre.trim(), email, hash, finalRole]
+      [nombre.trim(), email, hash, "cliente"]
     );
 
     res.json({ ok: true });
